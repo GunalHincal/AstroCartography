@@ -19,8 +19,8 @@ from fastapi.templating import Jinja2Templates
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
-from backend.utils import analyze_user
-from backend.utils import extract_table_from_analysis
+from utils import analyze_user
+from utils import extract_table_from_analysis
 
 
 # 🌍 Ortam değişkenlerini yükle
