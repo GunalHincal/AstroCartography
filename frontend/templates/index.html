@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Astroline ✨</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+</head>
+
+<body>
+    <!-- 🔭 Sayfa Başlığı Her Adımda Görünsün -->
+    <h2 class="main-heading">Astrocartography Analizine Göre İdeal Yaşam ve Kariyer Bölgeleri 🌎</h2>
+    
+    <div class="container">
+        <form id="astro-form" enctype="multipart/form-data">
+            <!-- 1. Cinsiyet -->
+            <div class="form-step active">
+                <h2>Cinsiyetinizi Seçin</h2>
+                <select id="gender" name="gender" required>
+                    <option value="">Seçiniz</option>
+                    <option value="Kadın">👩 Kadın</option>
+                    <option value="Erkek">👨 Erkek</option>
+                    <option value="Belirtmek istemiyorum">🤫 Belirtmek istemiyorum</option>
+                </select>
+            </div>
+
+            <!-- 2. Doğum Tarihi ve Saati -->
+            <div class="form-step">
+                <h2>Doğum Bilgileri</h2>
+                <label>Doğum Tarihi:</label>
+                <input type="date" id="birth_date" name="birth_date" required>
+
+                <label>Doğum Saati:</label>
+                <input type="time" id="birth_time" name="birth_time">
+            </div>
+
+            <!-- 3. Doğum Yeri -->
+            <div class="form-step">
+                <h2>Doğduğun Şehri Gir</h2>
+                <input type="text" id="birth_place" name="birth_place" placeholder="Şehir, Ülke" required>
+            </div>
+
+            <!-- 4. Şu Anda Yaşadığın Yer -->
+            <div class="form-step">
+                <h2>Şu Anda Yaşadığın Yer</h2>
+                <label for="current_location">Şu Anda Yaşadığın Yer:</label>
+                <input type="text" id="current_location" name="current_location" placeholder="Şehir, İlçe" autocomplete="off">
+                <button type="button" onclick="fetchCurrentLocation()">📍 Konumumu Kullan</button>
+            </div>
+
+            <!-- 5. İlişki Durumu -->
+            <div class="form-step">
+                <h2>İlişki Durumun</h2>
+                <select id="relationship_status" name="relationship_status">
+                    <option value="">Seçiniz</option>
+                    <option value="Bekar">🔥 Bekar</option>
+                    <option value="Evli">💍 Evli</option>
+                    <option value="İlişkisi var">❤️ İlişkisi var</option>
+                </select>
+            </div>
+
+            <!-- 6. Gelecek Hedefleri -->
+            <div class="form-step">
+                <h2>Gelecek Hedeflerin</h2>
+                <p style="font-size: 14px; color: #ccc; margin-bottom: 15px;">(En önemliden başlayarak max 5 adet hedef seçiniz)</p>
+                <div class="checkbox-group checkbox-grid">
+                    <label><input type="checkbox" name="goals" value="Kariyer"> 💼 Kariyer</label>
+                    <label><input type="checkbox" name="goals" value="Sağlık"> 🏥 Sağlık</label>
+                    <label><input type="checkbox" name="goals" value="Seyahat"> ✈️ Seyahat</label>
+                    <label><input type="checkbox" name="goals" value="Aşk"> 💖 Aşk</label>
+                    <label><input type="checkbox" name="goals" value="Evlilik"> 💍 Evlilik</label>
+                    <label><input type="checkbox" name="goals" value="Eğitim"> 🎓 Eğitim</label>
+                    <label><input type="checkbox" name="goals" value="Kişisel Gelişim"> 🌱 Kişisel Gelişim</label>
+                    <label><input type="checkbox" name="goals" value="Arkadaşlık"> 👥 Arkadaşlık</label>
+                    <label><input type="checkbox" name="goals" value="Aile"> 👪 Aile</label>
+                    <label><input type="checkbox" name="goals" value="Zenginlik"> 💰 Zenginlik</label>
+                    <label><input type="checkbox" name="goals" value="Başarı"> 🏆 Başarı</label>
+                    <label><input type="checkbox" name="goals" value="Kendine Güven"> 💪 Kendine Güven</label>
+                    <label><input type="checkbox" name="goals" value="İş"> 💼 İş</label>
+                    <label><input type="checkbox" name="goals" value="Eğlence"> 🎉 Eğlence</label>
+                    <label><input type="checkbox" name="goals" value="Huzur"> ☮️ Huzur</label>
+                </div>
+            </div>
+
+            <!-- 7. Enerji Değişimi -->
+            <div class="form-step">
+                <h2>Seyahat Ettiğin veya Bulunduğun Ortamlara Göre Enerjin Olumlu-Olumsuz Değişiyor mu?</h2>
+                <select id="energy_change" name="energy_change">
+                    <option value="">Seçiniz</option>
+                    <option value="Evet">✅Evet</option>
+                    <option value="Hayır">❌Hayır</option>
+                    <option value="Karışık">⚠️Karışık</option>
+                </select>
+            </div>
+
+            <!-- 8. Şu anki sorunlar -->
+            <div class="form-step">
+                <h2>Yaşadığın Yerle İlgili Sorunlar</h2>
+                <div class="checkbox-group checkbox-grid">
+                    <label><input type="checkbox" name="challenges" value="Yalnızlık"> 🧍‍♂️ Yalnızlık</label>
+                    <label><input type="checkbox" name="challenges" value="İş fırsatı azlığı"> 🏢 İş Fırsatı Azlığı</label>
+                    <label><input type="checkbox" name="challenges" value="Stres"> 😵‍💫 Stres</label>
+                    <label><input type="checkbox" name="challenges" value="Motivasyon düşüklüğü"> 💤 Motivasyon Düşüklüğü</label>
+                    <label><input type="checkbox" name="challenges" value="İnternet altyapı sorunları"> 🌐 İnternet Altyapı Sorunları</label>
+                    <label><input type="checkbox" name="challenges" value="Sosyal hayat eksikliği"> 🚫 Sosyal Hayat Eksikliği</label>
+                    <label><input type="checkbox" name="challenges" value="Yeterli aktivite imkânı yok"> 🏞️ Aktivite İmkânı Yokluğu</label>
+                    <label><input type="checkbox" name="challenges" value="Ulaşım zorluğu"> 🚗 Ulaşım Zorluğu</label>
+                    <label><input type="checkbox" name="challenges" value="Kültürel etkinlik azlığı"> 🎭 Kültürel Etkinlik Azlığı</label>
+                    <label><input type="checkbox" name="challenges" value="Güvenlik sorunları"> 🔒 Güvenlik Sorunları</label>
+                    <label><input type="checkbox" name="challenges" value="Doğal afet riski"> 🌋🌪️ Doğal Afet Riski</label>
+                    <label><input type="checkbox" name="challenges" value="Yüksek yaşam maliyeti"> 💸 Yüksek Yaşam Maliyeti</label>
+                    <label><input type="checkbox" name="challenges" value="Hastane ve sağlık hizmeti eksikliği"> 🏥🚫 Hastane ve Sağlık Hizmeti Eksikliği</label>
+                    <label><input type="checkbox" name="challenges" value="Yeşil alan ve doğa eksikliği"> 🌳🚫 Yeşil Alan ve Doğa Eksikliği</label>
+                    <label><input type="checkbox" name="challenges" value="Hayvan dostu ortam eksikliği"> 🐕🚫 Hayvan Dostu Ortam Eksikliği</label>
+                </div>
+            </div>
+
+            <!-- 9. Sevdiğin Ülkeler -->
+            <div class="form-step">
+                <h2>Sevdiğin Ülkeleri Seç</h2>
+                <p style="font-size: 14px; color: #ccc;">(En fazla 3 ülke seçebilirsin)</p>
+                <div id="country-suggestions" class="autocomplete-items"></div>
+                <input type="text" name="country1" class="country-input" placeholder="Ülke 1" autocomplete="off">
+                <input type="text" name="country2" class="country-input" placeholder="Ülke 2" autocomplete="off">
+                <input type="text" name="country3" class="country-input" placeholder="Ülke 3" autocomplete="off">
+            </div>
+
+
+            <!-- 10. Sol El Fotoğrafı -->
+            <div class="form-step">
+                <h2>Sol Elinin Fotoğrafını Yükle</h2>
+                <input type="file" id="hand_image" name="hand_image" accept="image/*" required>
+            </div>
+
+            <!-- Butonlar -->
+            <div class="button-group">
+                <button type="button" id="prev-btn" disabled>⬅️ Geri</button>
+                <button type="button" id="next-btn">➡️ İleri</button>
+                <button type="submit" id="submit-btn" style="display: none;">✨ Analiz Et</button>
+            </div>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

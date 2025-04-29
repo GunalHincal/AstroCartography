@@ -1,0 +1,21 @@
+
+# Byte-compiled / cache dosyaları
+__pycache__/
+*.py[cod]
+
+# Sanal ortam
+venv/
+.env
+
+# Kullanıcıdan yüklenen veriler
+backend/uploads/
+
+# IDE / Editor dosyaları
+.vscode/
+.idea/
+
+# Mac sistem dosyası
+.DS_Store
+
+# Geçici log / cache / test dosyaları
+*.log
