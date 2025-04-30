@@ -40,8 +40,9 @@ model = genai.GenerativeModel("gemini-1.5-pro-002")
 app = FastAPI()
 
 # 🎨 Frontend klasörlerini bağla
-app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
-templates = Jinja2Templates(directory="frontend/templates")
+app.mount("/static", StaticFiles(directory="../frontend/static"), name="static")
+templates = Jinja2Templates(directory="../frontend/templates")
+
 
 # 🧠 Geçici kullanıcı veri deposu (in-memory)
 user_data = {}
