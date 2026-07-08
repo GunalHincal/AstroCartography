@@ -22,6 +22,14 @@ function renderAnalysis(text) {
     return html.trim();
 }
 
+// 📄 Analizi PDF olarak indir — özel print stylesheet ile temiz çıktı
+function downloadPdf() {
+    const prevTitle = document.title;
+    document.title = "Astroline-Analiz-" + new Date().toISOString().slice(0, 10);
+    window.print();
+    setTimeout(() => { document.title = prevTitle; }, 800);
+}
+
 
 // 💾 Kullanıcı verilerini backend'e kaydeder
 async function saveAnswer(key, value) {
@@ -257,8 +265,16 @@ form.addEventListener('submit', async (e) => {
 
         const analyzeData = await analyzeRes.json();
 
-        // 🧠 Analiz metni (temiz HTML) ve tabloyu göster
+        // 🧠 Analiz metni (temiz HTML), rapor başlığı ve tabloyu göster
+        const today = new Date().toLocaleDateString("tr-TR");
         resultDiv.innerHTML = `
+        <div class="report-header">
+            <div class="report-brand">🪐 Astroline — Kişisel Analiz</div>
+            <div class="report-meta">
+                <span class="report-date">${today}</span>
+                <button type="button" class="pdf-btn no-print" onclick="downloadPdf()">📄 PDF olarak indir</button>
+            </div>
+        </div>
         <div class="analysis-body">${renderAnalysis(analyzeData.text)}</div>
         ${analyzeData.table || ''}
         `;
@@ -287,6 +303,7 @@ form.addEventListener('submit', async (e) => {
         const downloadBtn = document.createElement("a");
         downloadBtn.href = analyzeData.image_url;
         downloadBtn.download = "el_analizli.jpeg";
+        downloadBtn.className = "no-print";
         downloadBtn.textContent = "📥 Görseli İndir";
         downloadBtn.style.cssText = `
             display: inline-block;
