@@ -35,7 +35,7 @@ def _build_image_block(image_path: str) -> Optional[dict]:
 # ⚠️ Doğum haritası hesaplaması tek bir yerde (astro_utils.py) tutulur.
 # Buradaki eski, hatalı ikinci tanım kaldırıldı (Datetime'ı eksik argümanla
 # çağırıyor ve import edilen doğru fonksiyonu gölgeliyordu).
-from backend.astro_utils import calculate_birth_chart
+from backend.astro_utils import calculate_birth_chart, empty_chart
 from backend.hand_analysis import detect_palm_lines
 
 
@@ -45,6 +45,26 @@ def format_goals(goals):
     if isinstance(goals, str):
         return goals
     return "\n".join([f"{i + 1}. {goal}" for i, goal in enumerate(goals)])
+
+
+_PLANET_SYMBOLS = {
+    "Güneş": "☀️", "Ay": "🌙", "Merkür": "☿️", "Venüs": "♀️", "Mars": "♂️",
+    "Jüpiter": "♃", "Satürn": "♄", "Uranüs": "♅", "Neptün": "♆", "Plüton": "♇",
+}
+
+
+def format_astro(a: dict) -> str:
+    """Zengin doğum haritası sözlüğünü prompt için okunur metne çevirir."""
+    lines = [
+        f"- ♈ Yükselen Burç: {a.get('ascendant', 'Bilinmiyor')}",
+        f"- 🏔️ Tepe Noktası (MC / kariyer ekseni): {a.get('midheaven', 'Bilinmiyor')}",
+    ]
+    for p in a.get("planets", []):
+        sym = _PLANET_SYMBOLS.get(p["name"], "•")
+        house = f"{p['house']}. ev" if p.get("house") else "ev bilinmiyor"
+        retro = " (retro ♺)" if p.get("retro") else ""
+        lines.append(f"- {sym} {p['name']}: {p['sign']} burcu, {house}{retro}")
+    return "\n".join(lines)
 
 def create_prompt(user_data: dict) -> str:
     """Kullanıcıdan gelen bilgilerle detaylı astrolojik ve coğrafi analiz promptu oluşturur."""
@@ -72,14 +92,7 @@ def create_prompt(user_data: dict) -> str:
         timezone
     ]):
         print("⚠️ Eksik bilgi nedeniyle doğum haritası hesaplanamadı.")
-        astro_data = {
-            "ascendant": "Bilinmiyor",
-            "sun": "Bilinmiyor",
-            "moon": "Bilinmiyor",
-            "mars": "Bilinmiyor",
-            "mercury": "Bilinmiyor",
-            "venus": "Bilinmiyor"
-        }
+        astro_data = empty_chart()
     else:
         try:
             astro_data = calculate_birth_chart(
@@ -92,14 +105,9 @@ def create_prompt(user_data: dict) -> str:
             print("✅ Doğum haritası başarıyla hesaplandı.")
         except Exception as e:
             print("❌ Doğum haritası hesaplama hatası:", e)
-            astro_data = {
-                "ascendant": "Bilinmiyor",
-                "sun": "Bilinmiyor",
-                "moon": "Bilinmiyor",
-                "mars": "Bilinmiyor",
-                "mercury": "Bilinmiyor",
-                "venus": "Bilinmiyor"
-            }
+            astro_data = empty_chart()
+
+    astro_block = format_astro(astro_data)
 
     prompt = f"""
 ☀️ Merhaba sevgili dostum! \n
@@ -109,7 +117,17 @@ Doğum bilgilerini ve hedeflerini paylaştığın için çok teşekkür ederim. 
 Bu analizde karakter özelliklerinden yaşam enerjine, hangi şehirlerde daha mutlu ve başarılı olabileceğine kadar birçok detayı birlikte keşfedeceğiz. \n
 Hazırsan başlayalım... 🚀 \n
 
-🧙‍♀️ Lütfen aşağıdaki bilgilere göre çok kapsamlı, uzman bir astrolog, astrocartography ve palmistry uzmanı olarak kişisel analiz yap:
+🧙‍♀️ ROLÜN: Sen 30 yıllık deneyimli, sezgileri güçlü bir USTA astrolog, astrocartography ve el falı uzmanısın. Yorumların derin, spesifik, sıcak ve kişiyi "bu tam beni anlatıyor" dedirtecek kadar isabetli olacak. Genel geçer klişelerden ("sen özel birisin" gibi boş cümlelerden) KAÇIN; her cümleyi doğum haritasındaki SPESİFİK yerleşimlere (burç + ev + gezegen) dayandır.
+
+🎯 YORUM İLKELERİ (çok önemli):
+1. Yorumun TEMELİ doğum tarihi, saati, yeri ve o anki gökyüzü dizilimidir (yukarıdaki harita). Önce haritayı oku, karakteri oradan çıkar.
+2. Kullanıcının seçtiği "Yaşadığı Zorluklar"ı, yaşadığı yerin eksikliği gibi DÜZ okuma. Bunları kişinin İÇSEL İHTİYAÇLARI / ÖZLEMLERİ olarak yorumla:
+   örn. "ulaşım zorluğu" → hareket, özgürlük ve akış ihtiyacı; "sosyal hayat eksikliği" → topluluk ve ait olma arzusu; "motivasyon düşüklüğü" → anlam ve ilham arayışı.
+   Bu ipuçlarını doğum haritasıyla BİRLEŞTİRİP karakter portresi çiz.
+3. Ülke/şehir önerirken "şehrinde şu yok, oraya git" DEME. Bunun yerine: "Haritanda X baskın ve içten içe Y'yi arıyorsun, bu yüzden Z kültürü sana ev gibi gelir" mantığıyla, içsel ihtiyaç + astro yerleşim üzerinden gerekçelendir.
+4. Dil akıcı, edebi ve tatmin edici olsun; kişiye doğrudan "sen" diye hitap et.
+
+Aşağıdaki bilgilere göre çok kapsamlı, kişiye özel bir analiz yap:
 
 🪐 Astrolojik Analiz İçin Kullanıcı Verileri:
 - Cinsiyet: {user_data.get("gender", "Bilinmiyor")}
@@ -118,12 +136,10 @@ Hazırsan başlayalım... 🚀 \n
 - 📍 Doğum Yeri: {user_data.get("birth_place", "Bilinmiyor")}
 - 🌐 Koordinatlar: {latitude or "Bilinmiyor"}, {longitude or "Bilinmiyor"}
 - 🕒 Saat Dilimi: {timezone or "Bilinmiyor"}
-- ♈ Yükselen Burç: {astro_data['ascendant']}
-- ☀️ Güneş Burcu: {astro_data['sun']}
-- 🌙 Ay Burcu: {astro_data['moon']}
-- ♂️ Mars: {astro_data['mars']}
-- ☿️ Merkür: {astro_data['mercury']}
-- ♀️ Venüs: {astro_data['venus']}
+
+🌌 Doğum Haritası (bu kişinin gökyüzü dizilimi — yorumun TEMELİ bu olmalı):
+{astro_block}
+
 - Şu Anki Yer: {user_data.get("current_location", "Bilinmiyor")}
 - İlişki Durumu: {user_data.get("relationship_status", "Bilinmiyor")}
 - Hedefleri: \n{format_goals(user_data.get("goals", []))}
@@ -199,6 +215,7 @@ Hazırsan başlayalım... 🚀 \n
 - ASLA markdown kullanma: #, ##, ###, ---, *** ve tek/çift yıldız (*, **) KESİNLİKLE YASAK.
 - Akıcı paragraflar yaz, bölümler arasında bir boş satır bırak. Metin arayüzde HTML olarak gösterilecek.
 ⚠️ UYARI: Analiz kısa olmasın. Minimum 1500 kelime olacak şekilde detaylı, tek seferlik ve kişiye özel yaz.
+⚠️ ÇOK ÖNEMLİ: 5 bölümün HEPSİNİ (Astrokartografi, El Falı, Doğum Haritası, Ülke Önerileri, Özet Tablo) eksiksiz TAMAMLA. Hiçbir bölümü ve hiçbir cümleyi yarım bırakma; en sonda motive edici bir kapanış cümlesiyle bitir.
 ⚠️ Yazarken lütfen şu kurallara dikkat et:
 
 - Hiçbir yerde yıldız işareti (* veya **) kullanma.
@@ -282,7 +299,7 @@ def analyze_user(user_data: dict, client: Anthropic) -> Optional[str]:
 
     response = client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=4096,
+        max_tokens=8192,  # ~1500+ kelime Türkçe analiz için; 4096 yarım bırakıyordu
         messages=[{"role": "user", "content": content}],
     )
 

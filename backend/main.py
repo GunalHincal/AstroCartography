@@ -104,8 +104,16 @@ async def save_uploaded_image(file: UploadFile) -> str:
         f.write(content)
     return file_location
 
-# 🏠 Ana sayfa
-@app.get("/", response_class=HTMLResponse)
+# ❤️ Sağlık kontrolü (UptimeRobot / uptime monitoring için)
+# GET ve HEAD'e hızlıca 200 döner; DB/dosya/şablon işi YOK, auth YOK.
+# UptimeRobot ücretsiz planı varsayılan olarak HEAD kullanır — ikisi de destekli.
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health():
+    return {"status": "ok"}
+
+
+# 🏠 Ana sayfa (GET ve HEAD — HEAD'de de 405 yerine 200 döner)
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def home(request: Request):
     user_id = request.cookies.get("user_id")
     if not user_id:
