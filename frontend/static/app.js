@@ -4,6 +4,8 @@
 // bölüm başlıkları <h2>/<h3> olur; tablolar ve <b> etiketleri korunur.
 function renderAnalysis(text) {
     let html = text || "";
+    // Güvenlik ağı: kalan uzun tireleri (— –) daha doğal ayraçlarla değiştir
+    html = html.replace(/\s+[—–]\s+/g, ", ");
     // Markdown başlıkları
     html = html.replace(/^\s*#{3,}\s*(.+?)\s*#*\s*$/gm, "<h3>$1</h3>");
     html = html.replace(/^\s*#{1,2}\s*(.+?)\s*#*\s*$/gm, "<h2>$1</h2>");

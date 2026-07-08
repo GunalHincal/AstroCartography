@@ -30,7 +30,7 @@ body {
     background:
         radial-gradient(1200px 800px at 15% -10%, rgba(124, 108, 255, 0.28), transparent 60%),
         radial-gradient(1000px 700px at 100% 0%, rgba(34, 211, 238, 0.18), transparent 55%),
-        linear-gradient(160deg, var(--bg-1) 0%, var(--bg-0) 70%),
+        linear-gradient(160deg, #0b0f24 0%, #1b1046 48%, #05060f 88%),
         url('/static/stars_background.png');
     background-size: cover, cover, cover, cover;
     background-position: center;

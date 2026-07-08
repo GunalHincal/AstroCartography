@@ -24,6 +24,14 @@ LINE_COLORS = {
 }
 
 
+def _bezier(p0, p1, p2, n=28):
+    """İki uç ve bir kontrol noktasından kuadratik bezier eğrisi noktaları üretir."""
+    p0, p1, p2 = np.array(p0, float), np.array(p1, float), np.array(p2, float)
+    t = np.linspace(0, 1, n).reshape(-1, 1)
+    pts = (1 - t) ** 2 * p0 + 2 * (1 - t) * t * p1 + t ** 2 * p2
+    return pts.astype(np.int32)
+
+
 def _palm_landmarks(image):
     """MediaPipe ile avuç landmark'larını (px) ve el yönünü döner.
 
@@ -107,70 +115,61 @@ def detect_palm_lines(image_path: str):
         raise ValueError(f"Görsel okunamadı: {image_path}")
 
     output = image.copy()
-    points, thumb_on_left = _palm_landmarks(image)
+    points, _ = _palm_landmarks(image)
 
+    drawn = {}
     if points is not None:
-        roi = _palm_roi(points, image.shape)
-    else:
-        # El bulunamazsa tüm görseli ROI kabul et; sınıflandırma sezgisel kalır
-        h, w = image.shape[:2]
-        roi = (0, 0, w, h)
-        thumb_on_left = True
+        # Avuç landmark'larına göre 4 klasik el çizgisini anatomik konumlarına
+        # oturan DÜZGÜN KAVİSLER olarak çizeriz (rastgele sopalar değil).
+        P = points.astype(np.float64)
+        wrist, thumb_cmc, thumb_mcp = P[0], P[1], P[2]
+        idx, mid, pinky = P[5], P[9], P[17]
+        center = P[[0, 5, 9, 13, 17]].mean(axis=0)
 
-    x0, y0, x1, y1 = roi
-    palm = image[y0:y1, x0:x1]
-    if palm.size == 0:
-        palm = image
-        x0 = y0 = 0
+        def L(a, b, t):
+            return a + (b - a) * t
 
-    # Çizgileri (crease) belirginleştir: gri + CLAHE + morfolojik blackhat
-    gray = cv2.cvtColor(palm, cv2.COLOR_BGR2GRAY)
-    gray = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8)).apply(gray)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
-    blackhat = cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, kernel)
-    blurred = cv2.GaussianBlur(blackhat, (3, 3), 0)
-    edges = cv2.Canny(blurred, 20, 70)
+        # (renk anahtarı, başlangıç, kontrol, bitiş)
+        curves = {
+            # 💪 Yaşam çizgisi (yeşil): başparmağı saran kavis
+            "life": (
+                L(idx, thumb_mcp, 0.35),
+                L(L(idx, thumb_mcp, 0.35), L(wrist, thumb_cmc, 0.35), 0.5) + (thumb_mcp - center) * 0.38,
+                L(wrist, thumb_cmc, 0.35),
+            ),
+            # 🧠 Kafa çizgisi (turuncu): avucu ortadan yatay geçer, hafif iner
+            "head": (
+                L(idx, thumb_mcp, 0.30) + (wrist - mid) * 0.10,
+                L(L(idx, thumb_mcp, 0.30), L(pinky, wrist, 0.42), 0.5) + (wrist - center) * 0.12,
+                L(pinky, wrist, 0.42),
+            ),
+            # 💖 Kalp çizgisi (kırmızı): üst avuçta yatay kavis
+            "heart": (
+                pinky + (wrist - pinky) * 0.15,
+                L(pinky + (wrist - pinky) * 0.15, L(idx, mid, 0.45) + (wrist - mid) * 0.10, 0.5) + (mid - wrist) * 0.12,
+                L(idx, mid, 0.45) + (wrist - mid) * 0.10,
+            ),
+            # 🔮 Kader çizgisi (mor): bilekten orta parmağa dikey
+            "fate": (
+                L(wrist, center, 0.10),
+                L(L(wrist, center, 0.10), L(mid, center, 0.12), 0.5) + (thumb_mcp - center) * 0.06,
+                L(mid, center, 0.12),
+            ),
+        }
 
-    # Daha az ama daha uzun/temiz çizgi için yüksek eşik + uzun minLineLength
-    lines = cv2.HoughLinesP(
-        edges, rho=1, theta=np.pi / 180, threshold=55,
-        minLineLength=max(40, (x1 - x0) // 4), maxLineGap=8,
-    )
+        for kind, (p0, p1, p2) in curves.items():
+            pts = _bezier(p0, p1, p2)
+            # Cilt üzerinde okunur olsun diye önce koyu dış hat, sonra renk
+            cv2.polylines(output, [pts], False, (0, 0, 0), 6, cv2.LINE_AA)
+            cv2.polylines(output, [pts], False, LINE_COLORS[kind], 3, cv2.LINE_AA)
+            drawn[kind] = True
 
-    # Her çizgi türü için en uzun birkaç segmenti seçiyoruz — böylece görsel
-    # "karalama" gibi değil, temiz birkaç renkli çizgi olarak görünür.
-    MAX_PER_KIND = 5
-    segments = {"heart": [], "head": [], "life": [], "fate": []}
-    if lines is not None:
-        for line in lines:
-            lx1, ly1, lx2, ly2 = line[0]
-            # ROI koordinatlarını tam görsele taşı
-            gx1, gy1, gx2, gy2 = lx1 + x0, ly1 + y0, lx2 + x0, ly2 + y0
-            mx, my = (gx1 + gx2) / 2, (gy1 + gy2) / 2
-            dx, dy = gx2 - gx1, gy2 - gy1
-            angle = abs(math.degrees(math.atan2(dy, dx))) % 180
-
-            kind = _classify_line(mx, my, roi, thumb_on_left, angle)
-            if kind is None:
-                continue
-            length = (dx * dx + dy * dy) ** 0.5
-            segments[kind].append((length, (gx1, gy1, gx2, gy2)))
-
-    counts = {}
-    for kind, segs in segments.items():
-        segs.sort(key=lambda s: s[0], reverse=True)
-        chosen = segs[:MAX_PER_KIND]
-        counts[kind] = len(chosen)
-        for _, (a, b, c, d) in chosen:
-            cv2.line(output, (a, b), (c, d), LINE_COLORS[kind], 3, cv2.LINE_AA)
-
-    # Kaydet
     os.makedirs(PROCESSED_DIR, exist_ok=True)
     name = f"palm_{uuid4().hex}.jpeg"
     out_path = os.path.join(PROCESSED_DIR, name)
     cv2.imwrite(out_path, output)
     web_path = f"/static/processed/{name}"
-    print(f"[palm] Cizgiler tespit edildi ({counts}) -> {out_path}")
+    print(f"[palm] Cizgiler cizildi ({list(drawn) or 'el bulunamadi'}) -> {out_path}")
     return out_path, web_path
 
 

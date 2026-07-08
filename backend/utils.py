@@ -177,16 +177,20 @@ Aşağıdaki bilgilere göre çok kapsamlı, kişiye özel bir analiz yap:
 <b>4. Ülke ve Şehir Önerileri:</b>
    Bu bölümü İKİ ayrı parça halinde yaz:
 
-   🧳 Senin Seçtiğin Ülkeler: Yukarıdaki "Favori Şehirler" alanında kullanıcının seçtiği ülkeleri
-   TEK TEK değerlendir — astrocartography hatları ve kültürel uyum açısından bu kişiye uygun mu, neden?
-   Her ülke için 2-3 cümle yeterli, uzatma.
+   🧳 Senin Seçtiğin Ülkeler: Kullanıcının seçtiği ülkeleri (yukarıdaki "Favori Şehirler")
+   TEK TEK ve DOYURUCU biçimde değerlendir (her biri için en az bir dolu paragraf). Her ülke için şunları anlat:
+   hangi astrocartography hattı etkili ve bu kişiye ne hissettirir; oraya gitmenin OLUMLU yönleri neler,
+   dikkat edilmesi gereken OLUMSUZ yönleri neler; kısa vadede mi yoksa uzun vadede mi uygun; kariyer, aşk ve
+   iç huzur açısından ne beklenir. Sonunda NET bir yargı ver: bu kişi oraya taşınmalı mı, hangi şartlarda gitmeli,
+   bir atılım yapmalı mı yoksa temkinli mi olmalı? Kişiyi karar verdirecek kadar somut, gerekçeli ve içten yaz.
 
    🌟 Astroline'ın Önerisi: Cümleye "İşte Astroline'ın sana önerisi..." diye başla. Kullanıcının
-   doğum haritasına ve hedeflerine göre SEN dünyadaki HERHANGİ bir ülke/şehri öner — kullanıcının
-   seçtiklerinden tamamen farklı olabilir. 3-5 ülke+şehir seç. Her biri için KISA ve açıklayıcı (2-3 cümle):
-   ülke bayrağı emojisi + şehir, hangi astro hattı baskın ve ne hissettirir, kültürel/iklimsel uyum.
-   Örn: "🇬🇷 Atina — Venüs hattın burada güçlü; Akdeniz'in sıcaklığı Ay burcunla örtüşür, kendini
-   evinde hissedersin." Sadece turistik değil, kişinin karakterine oturan KÜLTÜREL bir aidiyet önerisi yap.
+   doğum haritasına, içsel ihtiyaçlarına ve hedeflerine göre SEN dünyadaki herhangi bir ülke/şehri öner
+   (seçtiklerinden farklı olabilir). 3-5 ülke/şehir seç. Her biri için dolu bir paragraf yaz:
+   ülke bayrağı emojisi ve şehir, hangi astro hattı baskın ve ne hissettirir, kültürel/iklimsel uyum,
+   oraya gidersen hayatında ne değişir (kariyer, aşk, huzur) ve bu kişiye ne kadar uygun olduğu.
+   Sadece turistik değil, karaktere oturan içten bir kültürel aidiyet önerisi yap.
+   Örnek üslup: "🇬🇷 Atina: Venüs hattın burada güçlü, Akdeniz'in sıcaklığı Ay burcunla örtüşür ve kendini evinde hissedersin."
 
 
 <b>5. Özet Analiz:</b>
@@ -209,6 +213,11 @@ Aşağıdaki bilgilere göre çok kapsamlı, kişiye özel bir analiz yap:
     - Sıralama yaptığında bu sırlamaların başında ülke adlarının başında * işaretini kullanma güzel gözükmüyor,
     - * işareti yerine uygun emojilerle destekle ki okunaklı olsun ve okuyucunun dikkatini çeksin, göze hitap etsin.
     - UI açısından kullanıcıya hitap etsin yani analiz rahat okunabilir olsun.
+
+⚠️ DİL VE YAZIM (ÇOK ÖNEMLİ):
+- KUSURSUZ Türkçe yaz: dilbilgisi, imla ve noktalama kurallarına tam uy. Cümle düşüklüğü, tekrar, yarım cümle OLMASIN. Her cümle akıcı ve anlamlı olsun.
+- UZUN TİRE (—, –) KULLANMA. Yapay zekâ yazısı izlenimi veriyor ve itici duruyor. Ayırma/vurgu için virgül, nokta, iki nokta (:) veya parantez kullan; cümleleri düzgün kur.
+- Burç/gezegen adlarını doğru çekimle kullan (örn. "Oğlak Güneşi", "Güneş'in", "Ay burcun" gibi); "Güneşün", "Güneşü" gibi bozuk ekler YAZMA.
 
 ⚠️ ÇIKTI BİÇİMİ (arayüzde düzgün görünmesi için ÇOK ÖNEMLİ):
 - Ana bölüm başlıklarını <h2>...</h2>, alt başlıkları <h3>...</h3>, vurguları <b>...</b> ile yaz.
