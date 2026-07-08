@@ -323,6 +323,33 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
+// ✨ Dinamik UI: imleç ışıması + kart spotlight'ları (portfolyo tarzı)
+(function initGlow() {
+    const root = document.documentElement;
+
+    // İmleci takip eden global ışıma
+    window.addEventListener("pointermove", (e) => {
+        root.style.setProperty("--mx", e.clientX + "px");
+        root.style.setProperty("--my", e.clientY + "px");
+    }, { passive: true });
+
+    // Kartlara spotlight davranışı ekle (hedef seçiciler)
+    function attachSpotlights() {
+        document.querySelectorAll(".checkbox-grid label, .intro-box").forEach((el) => {
+            if (el.dataset.spot) return;
+            el.dataset.spot = "1";
+            el.classList.add("spotlight");
+            el.addEventListener("pointermove", (e) => {
+                const r = el.getBoundingClientRect();
+                el.style.setProperty("--cx", (e.clientX - r.left) + "px");
+                el.style.setProperty("--cy", (e.clientY - r.top) + "px");
+            }, { passive: true });
+        });
+    }
+    attachSpotlights();
+    document.addEventListener("DOMContentLoaded", attachSpotlights);
+})();
+
 // 👋 Giriş ekranı
 document.addEventListener("DOMContentLoaded", () => {
     const startBtn = document.getElementById("start-btn");

@@ -16,6 +16,8 @@
     --radius: 18px;
     --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
     --font: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --mx: 50vw;   /* imleç X (JS günceller) */
+    --my: 0px;    /* imleç Y (JS günceller) */
 }
 
 * { box-sizing: border-box; }
@@ -184,7 +186,69 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow
     transition: background 0.2s, border-color 0.2s, transform 0.15s;
 }
 
-.checkbox-grid label:hover { background: rgba(124, 108, 255, 0.16); transform: translateY(-2px); }
+.checkbox-grid label:hover {
+    background: rgba(124, 108, 255, 0.16);
+    transform: translateY(-2px);
+    border-color: rgba(124, 108, 255, 0.6);
+    box-shadow: 0 0 22px rgba(124, 108, 255, 0.35);
+}
+
+/* ============================================================
+   Dinamik UI: imleç ışıması + grid + kart spotlight (portföy tarzı)
+   ============================================================ */
+
+/* İnce grid deseni (imleç bölgesinde belirginleşir) */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(124, 108, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 108, 255, 0.06) 1px, transparent 1px);
+    background-size: 46px 46px;
+    -webkit-mask-image: radial-gradient(circle at 50% 22%, #000, transparent 78%);
+    mask-image: radial-gradient(circle at 50% 22%, #000, transparent 78%);
+}
+
+/* İmleci takip eden yumuşak ışıma */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(600px circle at var(--mx) var(--my),
+        rgba(124, 108, 255, 0.16), rgba(34, 211, 238, 0.06) 42%, transparent 62%);
+    transition: background 0.08s linear;
+}
+
+/* Kartlar: imleç kartın üzerinde nereye giderse orada parlar */
+.spotlight { position: relative; overflow: hidden; isolation: isolate; }
+.spotlight::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(200px circle at var(--cx, 50%) var(--cy, 50%),
+        rgba(124, 108, 255, 0.30), transparent 60%);
+}
+.spotlight:hover::before { opacity: 1; }
+
+/* Hover glow'ları */
+.container:hover { box-shadow: var(--shadow), 0 0 45px rgba(124, 108, 255, 0.16); }
+button:hover { box-shadow: 0 0 0 1px rgba(124, 108, 255, 0.35), 0 12px 30px rgba(91, 70, 224, 0.55); }
+input:hover, select:hover { border-color: rgba(124, 108, 255, 0.5); }
+
+/* Hareketi azalt tercihine saygı */
+@media (prefers-reduced-motion: reduce) {
+    body::after { transition: none; }
+    .spotlight::before { transition: none; }
+}
 
 .checkbox-grid label input[type="checkbox"] {
     width: 22px;
