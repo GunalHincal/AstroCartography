@@ -192,6 +192,16 @@ const nextBtn = document.getElementById('next-btn');
 const submitBtn = document.getElementById('submit-btn');
 const form = document.getElementById('astro-form');
 
+// ⛔ Enter'a basınca formu erken GÖNDERMESİN. Bunun yerine sonraki adıma geçer.
+// (Google adres kutusunda Enter ile öneri seçimine karışmaz.)
+form.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    const tag = (e.target.tagName || "").toUpperCase();
+    if (tag === "TEXTAREA" || tag === "GMP-PLACE-AUTOCOMPLETE") return;
+    e.preventDefault();
+    if (currentStep < formSteps.length - 1) nextBtn.click();
+});
+
 function updateButtons() {
     prevBtn.disabled = currentStep === 0;
     nextBtn.style.display = currentStep === formSteps.length - 1 ? 'none' : 'inline-block';
@@ -226,6 +236,21 @@ prevBtn.addEventListener('click', () => {
 // 🚀 Form Gönderimi
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    // 🔒 Zorunlu alanlar dolmadan analiz BAŞLAMASIN
+    const gender = (document.getElementById("gender").value || "").trim();
+    const birthDate = (document.getElementById("birth_date").value || "").trim();
+    const birthTime = (document.getElementById("birth_time").value || "").trim();
+    const birthLat = (document.getElementById("birth_lat").value || "").trim();
+    const missing = [];
+    if (!gender) missing.push("cinsiyet");
+    if (!birthDate) missing.push("doğum tarihi");
+    if (!birthTime) missing.push("doğum saati");
+    if (!birthLat) missing.push("doğum yeri (öneri listesinden seçmelisin)");
+    if (missing.length) {
+        alert("Analiz için lütfen şu alanları tamamla:\n• " + missing.join("\n• "));
+        return;
+    }
 
     // ✅ Tüm adımları geçici olarak görünür yap (doğrulama için)
     formSteps.forEach(step => step.classList.add("active"));

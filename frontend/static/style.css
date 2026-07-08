@@ -28,9 +28,9 @@ body {
     font-family: var(--font);
     color: var(--text);
     background:
-        radial-gradient(1200px 800px at 15% -10%, rgba(124, 108, 255, 0.28), transparent 60%),
-        radial-gradient(1000px 700px at 100% 0%, rgba(34, 211, 238, 0.18), transparent 55%),
-        linear-gradient(160deg, #0b0f24 0%, #1b1046 48%, #05060f 88%),
+        radial-gradient(1200px 800px at 15% -10%, rgba(124, 108, 255, 0.14), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(34, 211, 238, 0.12), transparent 55%),
+        linear-gradient(160deg, #0a0e22 0%, #12132f 60%, #05060f 92%),
         url('/static/stars_background.png');
     background-size: cover, cover, cover, cover;
     background-position: center;
@@ -129,7 +129,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow
 
 .button-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-top: 26px; }
 
-#submit-btn { background: linear-gradient(135deg, var(--gold), #ff9d5c); color: #2a1600; }
+#submit-btn { background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: #fff; }
 
 /* ---------- İlerleme çubuğu ---------- */
 .progress-wrap { margin: 4px 0 26px; }
@@ -491,8 +491,8 @@ input:hover, select:hover { border-color: rgba(124, 108, 255, 0.5); }
     color: #fff;
 }
 
-.result-table td { background: rgba(255, 255, 255, 0.04); color: #e6e8ff; }
-.result-table tr:nth-child(even) td { background: rgba(255, 255, 255, 0.07); }
+.result-table td { background: rgba(10, 12, 30, 0.6); color: #f0f1ff; }
+.result-table tr:nth-child(even) td { background: rgba(124, 108, 255, 0.12); }
 
 /* ---------- Spinner ---------- */
 .spinner { animation: spin 1.4s linear infinite; }

@@ -129,32 +129,33 @@ def detect_palm_lines(image_path: str):
         def L(a, b, t):
             return a + (b - a) * t
 
-        # (renk anahtarı, başlangıç, kontrol, bitiş)
+        up = mid - wrist  # avucun "yukarı" (parmaklara doğru) yönü
+
+        # 💪 Yaşam çizgisi (yeşil): başparmağı saran geniş kavis
+        life_a = L(idx, thumb_mcp, 0.30)
+        life_b = L(wrist, thumb_cmc, 0.30)
+        life_c = L(life_a, life_b, 0.5) + (thumb_mcp - center) * 0.55
+
+        # 🧠 Kafa çizgisi (turuncu): kalbin altında, avucu ortadan yatay geçer
+        head_a = L(idx, thumb_mcp, 0.32) - up * 0.06
+        head_b = L(pinky, wrist, 0.40)
+        head_c = L(head_a, head_b, 0.5) - up * 0.05
+
+        # 💖 Kalp çizgisi (kırmızı): parmak diplerinin hemen altında, yüksekte
+        heart_a = pinky + up * 0.10
+        heart_b = L(idx, mid, 0.55) + up * 0.05
+        heart_c = L(heart_a, heart_b, 0.5) + up * 0.16
+
+        # 🔮 Kader çizgisi (mor): bilekten orta parmağa dikey
+        fate_a = L(wrist, center, 0.05)
+        fate_b = L(mid, center, 0.10)
+        fate_c = L(fate_a, fate_b, 0.5) + (thumb_mcp - center) * 0.05
+
         curves = {
-            # 💪 Yaşam çizgisi (yeşil): başparmağı saran kavis
-            "life": (
-                L(idx, thumb_mcp, 0.35),
-                L(L(idx, thumb_mcp, 0.35), L(wrist, thumb_cmc, 0.35), 0.5) + (thumb_mcp - center) * 0.38,
-                L(wrist, thumb_cmc, 0.35),
-            ),
-            # 🧠 Kafa çizgisi (turuncu): avucu ortadan yatay geçer, hafif iner
-            "head": (
-                L(idx, thumb_mcp, 0.30) + (wrist - mid) * 0.10,
-                L(L(idx, thumb_mcp, 0.30), L(pinky, wrist, 0.42), 0.5) + (wrist - center) * 0.12,
-                L(pinky, wrist, 0.42),
-            ),
-            # 💖 Kalp çizgisi (kırmızı): üst avuçta yatay kavis
-            "heart": (
-                pinky + (wrist - pinky) * 0.15,
-                L(pinky + (wrist - pinky) * 0.15, L(idx, mid, 0.45) + (wrist - mid) * 0.10, 0.5) + (mid - wrist) * 0.12,
-                L(idx, mid, 0.45) + (wrist - mid) * 0.10,
-            ),
-            # 🔮 Kader çizgisi (mor): bilekten orta parmağa dikey
-            "fate": (
-                L(wrist, center, 0.10),
-                L(L(wrist, center, 0.10), L(mid, center, 0.12), 0.5) + (thumb_mcp - center) * 0.06,
-                L(mid, center, 0.12),
-            ),
+            "life": (life_a, life_c, life_b),
+            "head": (head_a, head_c, head_b),
+            "heart": (heart_a, heart_c, heart_b),
+            "fate": (fate_a, fate_c, fate_b),
         }
 
         for kind, (p0, p1, p2) in curves.items():
