@@ -7,15 +7,21 @@ __pycache__/
 venv/
 .env
 
-# Kullanıcıdan yüklenen veriler
+# Kullanıcıdan yüklenen ve işlenen veriler
+frontend/static/uploads/
+frontend/static/processed/
 backend/uploads/
+static/
 
-# IDE / Editor dosyaları
+# IDE / Editor / araç dosyaları
 .vscode/
 .idea/
+.claude/
 
 # Mac sistem dosyası
 .DS_Store
 
 # Geçici log / cache / test dosyaları
 *.log
+
+el.jpeg

@@ -1,0 +1,61 @@
+# === Astroline — Python bağımlılıkları ===
+# Kurulum (proje kökünden):
+#   python -m venv venv
+#   .\venv\Scripts\activate      # Windows
+#   source venv/bin/activate      # macOS/Linux
+#   pip install -r requirements.txt
+
+# --- Web framework ---
+fastapi
+uvicorn[standard]
+python-multipart
+jinja2
+aiofiles
+httpx
+
+# --- Ortam değişkenleri ---
+python-dotenv
+
+# --- LLM (Anthropic Claude) ---
+# Vision destekli; el fotoğrafını modele gösterip okutuyoruz. Model seçimi
+# backend/utils.py -> CLAUDE_MODEL (şu an "claude-haiku-4-5": ucuz + hızlı).
+anthropic
+
+# --- Görüntü işleme / el analizi ---
+# NOT: mediapipe 0.10.9 artık PyPI'da yeni Python için wheel sunmuyor VE eski
+# `mp.solutions` (Hands) API'si 0.10.30+ sürümlerde kaldırıldı. 0.10.18 hem
+# `solutions.hands` içerir hem protobuf 4.x'e izin verir.
+opencv-python
+mediapipe==0.10.18
+protobuf>=4.25.3,<5
+numpy<2
+
+# --- Astroloji / doğum haritası ---
+flatlib==0.2.3
+
+
+# Sen test ederken
+
+# py -3.11 -m venv venv
+# .\venv\Scripts\activate
+# pip install -r requirements.txt
+# .env.example'ı .env yap, anahtarları gir
+# uvicorn backend.main:app --reload
+# → http://127.0.0.1:8000
+
+# Komutlar
+# pip install -r backend/requirements.txt
+# pip install -r backend/requirements.txt --default-timeout=100
+# Remove-Item -Recurse -Force venv
+# python -m venv venv
+# .\venv\Scripts\activate
+# Command Palette yeni venv i interpreter ata
+
+
+# Komut	                                             Açıklama
+# pip uninstall -r backend/requirements.txt	                 Tüm paketleri kaldırır, ama her seferinde onay ister
+# pip uninstall -r backend/requirements.txt -y	             Tüm paketleri onaysız, otomatik kaldırır
+# pip install -r backend/requirements.txt	                 Requirements dosyasındaki paketleri yükler
+# pip freeze > backend/requirements.txt	                     Ortamdaki tüm paketlerin versiyonlarını requirements.txt olarak kaydeder
+# pip freeze > backend/requirements.txt --local	             Ortamdaki tüm paketlerin versiyonlarını requirements.txt olarak kaydeder, ama global paketleri dahil etmez
+# pip freeze > backend/requirements.txt --all	             Ortamdaki tüm paketlerin versiyonlarını requirements.txt olarak kaydeder, ama global paketleri dahil etmez

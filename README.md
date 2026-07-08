@@ -32,7 +32,7 @@ Astroline, kullanıcıdan alınan doğum bilgileri, favori şehirler, gelecek he
 
 - **Frontend**: HTML, CSS, JS (Vanilla)
 - **Backend**: FastAPI (Python)
-- **AI Model**: Google Gemini 1.5 Pro
+- **AI Model**: Anthropic Claude Haiku 4.5 (vision — el fotoğrafını okur)
 - **Deployment**: Render.com
 - **API Entegrasyonu**: Google Places API
 
@@ -45,21 +45,24 @@ Astroline, kullanıcıdan alınan doğum bilgileri, favori şehirler, gelecek he
 git clone https://github.com/kullaniciadi/astroline-app.git
 cd astroline-app
 
-# 2. Ortamı oluştur ve aktif et
-python -m venv venv
+# 2. Ortamı oluştur ve aktif et  (⚠️ Python 3.11 kullan — 3.14 desteklenmiyor)
+py -3.11 -m venv venv            # Windows
+# python3.11 -m venv venv        # macOS/Linux
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# 3. Gereksinimleri yükle
-pip install -r backend/requirements.txt
+# 3. Gereksinimleri yükle (kökteki requirements.txt)
+pip install -r requirements.txt
 
-# 4. Ortam değişkenlerini ayarla (.env dosyası oluştur)
-GEMINI_API_KEY=your_gemini_api_key
-GOOGLE_PLACES_API_KEY=your_google_places_key
+# 4. Ortam değişkenlerini ayarla (.env.example'ı kopyalayıp .env oluştur)
+#    ANTHROPIC_API_KEY=sk-ant-...
+#    GOOGLE_PLACES_API_KEY=your_google_places_key
 
-# 5. Uygulamayı başlat
-cd backend
-uvicorn main:app --reload
+# 5. Uygulamayı PROJE KÖKÜNDEN başlat (cd backend YAPMA — importlar kırılır)
+uvicorn backend.main:app --reload
 ```
+
+> ⚠️ Uygulama `from backend...` mutlak importları kullandığı için mutlaka proje
+> kökünden çalıştırılmalıdır. `cd backend && uvicorn main:app` import hatası verir.
 
 https://astrocartography.onrender.com/
 
@@ -71,12 +74,9 @@ https://astrocartography.onrender.com/
 >
 > Lütfen bu yorumları yaşamınızda önemli kararlar alırken **tek ve mutlak kaynak** olarak değerlendirmeyin.
 
-
-
 Her türlü geri bildiriminiz için ulaşabilirsiniz. Projeyi beğenip desteklemeyi unutmayın! 😊
 
 **✨ Teşekkürler!**
-
 
 ## 🚀 Follow Me for More Updates
 

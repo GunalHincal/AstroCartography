@@ -1,20 +1,61 @@
 <!DOCTYPE html>
 <html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <title>Astroline ✨</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" type="image/png" href="/static/favicon.png">
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Astroline ✨</title>
+    
+        <!-- 🌌 Stil -->
+        <link rel="stylesheet" href="/static/style.css">
+    
+        <!-- 🖼️ Faviconlar -->
+        <link rel="icon" type="image/png" sizes="96x96" href="/static/favicon-96x96.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
+        <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+        <link rel="shortcut icon" href="/static/favicon.ico">
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+    
+        <!-- 📱 iOS/Mobil Uyum -->
+        <meta name="apple-mobile-web-app-title" content="Astroline">
+        
+        <!-- 🗂️ PWA Manifest -->
+        <link rel="manifest" href="/static/site.webmanifest">
+    </head>
 
 <body>
     <!-- 🔭 Sayfa Başlığı Her Adımda Görünsün -->
     <h2 class="main-heading">Astrocartography Analizine Göre İdeal Yaşam ve Kariyer Bölgeleri 🌎</h2>
+    <div class="container">
+
+        <!-- 👇 Bilgilendirme kutusu buraya eklenecek -->
+    <div class="intro-box">
+        <h1>✨ Astroline'a Hoş Geldin!</h1>
+        <p>
+            Bu uygulama senin için özel olarak hazırlandı. <br><br>
+            🌌 <strong>Astrolojik haritan</strong>, ✋ <strong>el çizgilerin</strong> ve 🌍 <strong>yaşamayı düşündüğün şehirler</strong> bir araya gelerek, sana en uygun yerleri ve potansiyelleri ortaya çıkaracak bir analiz hazırlanıyor. <br><br>
+            🚀 <strong>Astrocartography, el falı (palmistry) ve doğum haritası</strong> gibi teknikleri yapay zekâ desteğiyle birleştirerek, senin için yepyeni bir yol haritası oluşturuyoruz.
+            <br><br>
+            Lütfen aşağıdaki formu sırayla doldur. Doğum bilgilerini, şu anki yaşam yerini, hedeflerini ve (varsa) el fotoğrafını yükle. Tüm bu bilgiler, sana özel hazırlanacak detaylı analiz için kullanılacak.
+            <br><br>
+            🔮 Analizin sonucunda; hangi şehirlerde daha mutlu, başarılı ve huzurlu hissedebileceğini; ilişkiler, kariyer ve sağlığın üzerinde gezegenlerin nasıl etkiler yarattığını öğrenebileceksin.
+            <br><br>
+            ⏳ Ortalama analiz süresi: <strong>30-60 saniye</strong>. Sabırla bekle, yıldızlar senin için konuşacak!
+            <br><br>
+            Hazırsan başlayalım... 🌠
+        </p>
+        <button id="start-btn">✨ Başla</button>
+    </div>
     
     <div class="container">
+        <!-- 📊 İlerleme çubuğu -->
+        <div class="progress-wrap" id="progress-wrap" style="display:none;">
+            <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+            <p id="step-indicator" class="step-indicator"></p>
+        </div>
+
         <form id="astro-form" enctype="multipart/form-data">
             <!-- 1. Cinsiyet -->
-            <div class="form-step active">
+            <div class="form-step">
                 <h2>Cinsiyetinizi Seçin</h2>
                 <select id="gender" name="gender" required>
                     <option value="">Seçiniz</option>
@@ -37,14 +78,21 @@
             <!-- 3. Doğum Yeri -->
             <div class="form-step">
                 <h2>Doğduğun Şehri Gir</h2>
-                <input type="text" id="birth_place" name="birth_place" placeholder="Şehir, Ülke" required>
+                <!-- Yeni Google PlaceAutocompleteElement buraya JS ile eklenir -->
+                <div id="birth_place_container"></div>
+                <!-- 📍 Seçim yapılınca JS bu gizli alanları doldurur -->
+                <input type="hidden" name="birth_place" id="birth_place">
+                <input type="hidden" name="birth_lat" id="birth_lat">
+                <input type="hidden" name="birth_lng" id="birth_lng">
+                <input type="hidden" name="birth_timezone" id="birth_timezone"> <!-- Burası kritik -->
             </div>
 
             <!-- 4. Şu Anda Yaşadığın Yer -->
             <div class="form-step">
                 <h2>Şu Anda Yaşadığın Yer</h2>
-                <label for="current_location">Şu Anda Yaşadığın Yer:</label>
-                <input type="text" id="current_location" name="current_location" placeholder="Şehir, İlçe" autocomplete="off">
+                <label>Şu Anda Yaşadığın Yer:</label>
+                <div id="current_location_container"></div>
+                <input type="hidden" name="current_location" id="current_location">
                 <button type="button" onclick="fetchCurrentLocation()">📍 Konumumu Kullan</button>
             </div>
 
@@ -119,17 +167,22 @@
             <div class="form-step">
                 <h2>Sevdiğin Ülkeleri Seç</h2>
                 <p style="font-size: 14px; color: #ccc;">(En fazla 3 ülke seçebilirsin)</p>
-                <div id="country-suggestions" class="autocomplete-items"></div>
-                <input type="text" name="country1" class="country-input" placeholder="Ülke 1" autocomplete="off">
-                <input type="text" name="country2" class="country-input" placeholder="Ülke 2" autocomplete="off">
-                <input type="text" name="country3" class="country-input" placeholder="Ülke 3" autocomplete="off">
+                <label>Ülke 1</label>
+                <div id="country1_container"></div>
+                <label>Ülke 2</label>
+                <div id="country2_container"></div>
+                <label>Ülke 3</label>
+                <div id="country3_container"></div>
+                <input type="hidden" name="country1" id="country1">
+                <input type="hidden" name="country2" id="country2">
+                <input type="hidden" name="country3" id="country3">
             </div>
 
 
             <!-- 10. Sol El Fotoğrafı -->
             <div class="form-step">
                 <h2>Sol Elinin Fotoğrafını Yükle</h2>
-                <input type="file" id="hand_image" name="hand_image" accept="image/*" required>
+                <input type="file" id="hand_image" name="hand_image" accept="image/*" style="max-width: 100%;">
             </div>
 
             <!-- Butonlar -->
