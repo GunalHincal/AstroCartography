@@ -29,8 +29,15 @@ from fastapi import FastAPI, UploadFile, File
 from pathlib import Path
 import os
 import shutil
+import json
+import logging
+import traceback
 from dotenv import load_dotenv
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
+try:
+    import sentry_sdk
+except ImportError:
+    sentry_sdk = None
 from backend.utils import analyze_user
 from backend.utils import extract_table_from_analysis
 from backend.hand_analysis import analyze_hand_image
@@ -44,6 +51,27 @@ import threading
 
 # 🌍 Ortam değişkenlerini yükle
 load_dotenv()
+
+# 📝 Loglama — Render loglarında zaman damgalı, seviyeli, aranabilir çıktı.
+logger = logging.getLogger("astroline")
+if not logger.handlers:
+    _handler = logging.StreamHandler(sys.stdout)
+    _handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s astroline | %(message)s"))
+    logger.addHandler(_handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
+# 🛰️ Sentry — hata izleme. DSN yalnızca ortam değişkeninden okunur (koda gömülmez).
+# DSN yoksa (lokal geliştirme) Sentry sessizce devre dışı kalır.
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+if SENTRY_DSN and sentry_sdk:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        send_default_pii=False,     # IP/başlık gönderme (gizlilik). İstersen True yap.
+        enable_logs=True,           # logları Sentry'ye ilet
+        traces_sample_rate=0.3,     # performans örnekleme; kotayı korumak için 0.3
+    )
+    logger.info("Sentry aktif")
 
 
 # 🧐 Geçici kullanıcı veri deposu (in-memory)
@@ -64,9 +92,13 @@ async def clear_user_data_later(user_id: str, delay: int = 180):  # 180 saniye =
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 GOOGLE_PLACES_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 
-# 🔮 Claude (Anthropic) istemcisini başlat — anahtar ortam değişkeninden okunur.
+# 🔮 Claude (Anthropic) ASENKRON istemci — LLM çağrısı olay döngüsünü bloklamaz.
 # Model seçimi backend/utils.py içindeki CLAUDE_MODEL sabitindedir (şu an Haiku 4.5).
-anthropic_client = Anthropic(api_key=ANTHROPIC_API_KEY)
+anthropic_client = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+
+# 🚦 Ağır (MediaPipe/OpenCV) el işleme için eşzamanlılık sınırı — belleği korur.
+# Aynı anda en fazla bu kadar el analizi yapılır; fazlası kısa süre kuyrukta bekler.
+ANALYZE_SEMAPHORE = asyncio.Semaphore(int(os.getenv("MAX_CONCURRENT_ANALYSES", "4")))
 
 # 🚀 FastAPI app oluştur
 app = FastAPI()
@@ -110,6 +142,51 @@ async def save_uploaded_image(file: UploadFile) -> str:
 @app.api_route("/health", methods=["GET", "HEAD"])
 async def health():
     return {"status": "ok"}
+
+
+# 🧯 Global hata yakalayıcı — yakalanmamış her exception'ı TAM traceback +
+# hangi endpoint + hangi kullanıcı bilgisiyle loglar. Render loglarında görünür.
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    user_id = request.cookies.get("user_id", "?")
+    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    logger.error(
+        "UNHANDLED %s %s | user=%s | %s\n%s",
+        request.method, request.url.path, user_id, repr(exc), tb,
+    )
+    # Sentry'ye de gönder — catch-all handler olmasa Sentry otomatik yakalardı,
+    # handler exception'ı "yuttuğu" için burada elle raporluyoruz.
+    if sentry_sdk:
+        sentry_sdk.set_tag("user_cookie", user_id)
+        sentry_sdk.capture_exception(exc)
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Beklenmeyen bir sunucu hatası oluştu. Kayıt altına alındı, lütfen tekrar deneyin."},
+    )
+
+
+# 📡 Tarayıcı (client) tarafındaki hataları toplar → Render loglarına yazar.
+# "Sayfa açılmadı / analiz çalışmadı" gibi olayların kaynağını görmemizi sağlar.
+@app.post("/client-log")
+async def client_log(request: Request):
+    user_id = request.cookies.get("user_id", "?")
+    try:
+        data = await request.json()
+    except Exception:
+        data = {"raw": (await request.body()).decode("utf-8", "replace")[:500]}
+    logger.warning("CLIENT user=%s | %s", user_id, json.dumps(data, ensure_ascii=False)[:1200])
+    if sentry_sdk:
+        sentry_sdk.capture_message(
+            f"CLIENT {data.get('type', '?')}: {data.get('message', '')}",
+            level="warning",
+        )
+    return {"ok": True}
+
+
+# 🧪 TEST: Sentry'ye örnek hata gönderir. Doğruladıktan sonra bu route'u silebilirsin.
+@app.get("/sentry-debug")
+async def sentry_debug():
+    _ = 1 / 0  # bilerek ZeroDivisionError
 
 
 # 🏠 Ana sayfa (GET ve HEAD — HEAD'de de 405 yerine 200 döner)
@@ -195,19 +272,21 @@ async def analyze(request: Request):
     if user_data.get("hand_image"):
         from backend.hand_analysis import analyze_hand_image, detect_palm_lines
 
-        # 🖐️ 1. El falı analizi (palm_result)
-        palm_result = analyze_hand_image(user_data["hand_image"])
-        if "error" not in palm_result:
-            user_data["palm_analysis"] = palm_result
+        # MediaPipe/OpenCV bloklayıcı ve bellek-yoğun → thread'e al + eşzamanlılık sınırı.
+        # Böylece olay döngüsü bloklanmaz ve aynı anda çok kişi belleği patlatmaz.
+        processed_abs_path = None
+        async with ANALYZE_SEMAPHORE:
+            palm_result = await asyncio.to_thread(analyze_hand_image, user_data["hand_image"])
+            if "error" not in palm_result:
+                user_data["palm_analysis"] = palm_result
+            try:
+                processed_abs_path, image_url = await asyncio.to_thread(
+                    detect_palm_lines, user_data["hand_image"]
+                )
+            except Exception as e:
+                print(f"⚠️ El çizgisi görseli üretilemedi: {e}")
 
-        # 📸 2. El çizgilerini sınıflandırıp renklendiren görsel üret
-        try:
-            processed_abs_path, image_url = detect_palm_lines(user_data["hand_image"])
-        except Exception as e:
-            print(f"⚠️ El çizgisi görseli üretilemedi: {e}")
-            processed_abs_path = None
-
-        # 🧹 3. 5 dakika sonra hem orijinal hem analizli görseli sil
+        # 🧹 5 dakika sonra hem orijinal hem işlenmiş görseli sil
         def _safe_remove(p):
             try:
                 if p and os.path.exists(p):
@@ -219,8 +298,8 @@ async def analyze(request: Request):
         if processed_abs_path:
             threading.Timer(300, _safe_remove, args=[processed_abs_path]).start()
 
-    # 🤖 LLM (Claude) ile genel analiz üret
-    raw_analysis = analyze_user(user_data, anthropic_client)
+    # 🤖 LLM (Claude) — ASENKRON, olay döngüsünü bloklamaz (çok kişi aynı anda bekleyebilir)
+    raw_analysis = await analyze_user(user_data, anthropic_client)
 
     if raw_analysis is None:
         return JSONResponse(content={"analysis": "❌ Gerekli bilgiler eksik. Lütfen formu eksiksiz doldurun."}, status_code=400)

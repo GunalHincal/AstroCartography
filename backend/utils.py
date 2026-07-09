@@ -6,8 +6,10 @@
 import re
 import os
 import base64
+import asyncio
+import cv2
 from typing import Tuple, Optional
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 
 # 🖐️ Vision için: yüklenen el görselini modele göndereceğimiz medya tipleri
 _IMAGE_MEDIA_TYPES = {
@@ -19,17 +21,35 @@ _IMAGE_MEDIA_TYPES = {
 
 
 def _build_image_block(image_path: str) -> Optional[dict]:
-    """El görselini Claude vision formatında (base64) bir içerik bloğuna çevirir."""
+    """El görselini Claude vision formatında (base64) bir içerik bloğuna çevirir.
+    Belleği ve token maliyetini düşürmek için görseli max 1400px'e küçültür."""
     ext = os.path.splitext(image_path)[1].lower()
     media_type = _IMAGE_MEDIA_TYPES.get(ext)
     if not media_type or not os.path.exists(image_path):
         return None
+
+    # Küçült + JPEG'e yeniden kodla (8 MB foto -> ~150 KB; hız, bellek ve maliyet kazancı)
+    try:
+        img = cv2.imread(image_path)
+        if img is not None:
+            h, w = img.shape[:2]
+            longest = max(h, w)
+            if longest > 1400:
+                scale = 1400 / longest
+                img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+            ok, buf = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            if ok:
+                data = base64.standard_b64encode(buf.tobytes()).decode("utf-8")
+                return {"type": "image",
+                        "source": {"type": "base64", "media_type": "image/jpeg", "data": data}}
+    except Exception:
+        pass
+
+    # Yeniden kodlama başarısızsa orijinali gönder
     with open(image_path, "rb") as f:
         data = base64.standard_b64encode(f.read()).decode("utf-8")
-    return {
-        "type": "image",
-        "source": {"type": "base64", "media_type": media_type, "data": data},
-    }
+    return {"type": "image",
+            "source": {"type": "base64", "media_type": media_type, "data": data}}
 
 
 # ⚠️ Doğum haritası hesaplaması tek bir yerde (astro_utils.py) tutulur.
@@ -291,7 +311,7 @@ Bu tablo başlıkları şöyle olacak:
 CLAUDE_MODEL = "claude-haiku-4-5"
 
 
-def analyze_user(user_data: dict, client: Anthropic) -> Optional[str]:
+async def analyze_user(user_data: dict, client: AsyncAnthropic) -> Optional[str]:
     prompt = create_prompt(user_data)
     if not prompt or not prompt.strip():
         return None
@@ -301,14 +321,15 @@ def analyze_user(user_data: dict, client: Anthropic) -> Optional[str]:
     # 🖐️ El görseli varsa modele gerçekten "gösteriyoruz" (vision) — böylece
     # el falı yorumu uydurma değil, fotoğrafa dayalı olur.
     content = []
-    image_block = _build_image_block(user_data.get("hand_image") or "")
+    # Görseli küçültme (cv2) bloklayıcı → thread'e al, olay döngüsünü meşgul etme
+    image_block = await asyncio.to_thread(_build_image_block, user_data.get("hand_image") or "")
     if image_block:
         content.append(image_block)
     content.append({"type": "text", "text": prompt})
 
-    response = client.messages.create(
+    response = await client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=8192,  # ~1500+ kelime Türkçe analiz için; 4096 yarım bırakıyordu
+        max_tokens=12000,  # 8192 uzun analizlerde yarım bırakıyordu; tamamlanması için artırıldı
         messages=[{"role": "user", "content": content}],
     )
 

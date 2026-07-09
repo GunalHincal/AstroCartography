@@ -11,7 +11,7 @@ venv/
 frontend/static/uploads/
 frontend/static/processed/
 backend/uploads/
-static/
+/static/
 
 # IDE / Editor / araç dosyaları
 .vscode/

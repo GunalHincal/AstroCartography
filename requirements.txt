@@ -16,6 +16,9 @@ httpx
 # --- Ortam değişkenleri ---
 python-dotenv
 
+# --- Hata izleme (Sentry) — DSN yalnızca SENTRY_DSN env değişkeninden okunur ---
+sentry-sdk[fastapi]
+
 # --- LLM (Anthropic Claude) ---
 # Vision destekli; el fotoğrafını modele gösterip okutuyoruz. Model seçimi
 # backend/utils.py -> CLAUDE_MODEL (şu an "claude-haiku-4-5": ucuz + hızlı).

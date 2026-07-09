@@ -1,5 +1,30 @@
 // === Astroline App JS ===
 
+// 🛰️ İstemci (tarayıcı) hatalarını backend'e gönderir → Render loglarında görünür.
+function reportClientError(payload) {
+    try {
+        const body = JSON.stringify(Object.assign({
+            url: location.href,
+            ua: navigator.userAgent,
+            t: new Date().toISOString(),
+        }, payload));
+        // sendBeacon: sayfa kapanırken bile kaybolmaz
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon("/client-log", body);
+        } else {
+            fetch("/client-log", { method: "POST", body, keepalive: true });
+        }
+    } catch (e) { /* sessiz geç */ }
+}
+
+// Global JS hataları ve yakalanmamış promise reddleri
+window.addEventListener("error", (e) => {
+    reportClientError({ type: "js-error", message: e.message, source: e.filename, line: e.lineno, col: e.colno });
+});
+window.addEventListener("unhandledrejection", (e) => {
+    reportClientError({ type: "promise-reject", message: String(e.reason && e.reason.message || e.reason) });
+});
+
 // 🎨 LLM çıktısını temiz HTML'e çevirir: markdown (##, ---, **) temizlenir,
 // bölüm başlıkları <h2>/<h3> olur; tablolar ve <b> etiketleri korunur.
 function renderAnalysis(text) {
@@ -364,6 +389,7 @@ form.addEventListener('submit', async (e) => {
     } catch (error) {
         resultDiv.innerHTML = "<p style='color:red;'>❌ Bir hata oluştu. Lütfen tekrar deneyin.</p>";
         console.error("🛑 Hata:", error.message);
+        reportClientError({ type: "analyze-failed", message: String(error && error.message || error) });
     }
 });
 
