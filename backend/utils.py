@@ -167,71 +167,52 @@ Aşağıdaki bilgilere göre çok kapsamlı, kişiye özel bir analiz yap:
 - El Fotoğrafı Yüklendi mi: {'Evet' if user_data.get("hand_image") else 'Hayır'}
 - Favori Şehirler: {user_data.get("country1", "")}, {user_data.get("country2", "")}, {user_data.get("country3", "")}
 
-🔭 Analiz Aşamaları:
+🔭 Analiz Aşamaları (KESİNLİKLE bu SIRAYLA yaz):
 
-<b>1. Astrokartografi Analizi:</b>
-   -🌍 Öncelikle kullanıcının favori şehirleri üzerinden astrocartography çizgilerine göre değerlendirme yap. 
-   - Hangi şehirde hangi çizgiler (Sun Line, Venus Line, Saturn Line vs.) var?
-   - Bu şehirlerdeki astrolojik etkiler ne olabilir?
-   - Hangi tarihlerde hangi gezegenler etki yaratıyor? 
-   - Bu etkiler kariyer, aşk, sağlık, para, arkadaşlık gibi alanları nasıl etkiler? Öncelikle kullanıcının favori şehirleri üzerinden astrocartography çizgilerine göre değerlendirme yap. 
-   - Hangi şehirde hangi çizgiler (Sun Line, Venus Line, Saturn Line vs.) var?
-   - Bu şehirlerdeki astrolojik etkiler ne olabilir?
-   - Hangi tarihlerde hangi gezegenler etki yaratıyor? 
-   - Bu etkiler kariyer, aşk, sağlık, para, arkadaşlık gibi alanları nasıl etkiler?
+<b>1. Doğum Haritası Analizi:</b>
+   Yukarıdaki gökyüzü dizilimini EV EV, gezegen gezegen, DETAYLI yorumla. Sıra: önce Yükselen, Güneş, Ay;
+   sonra Merkür, Venüs, Mars; sonra Jüpiter, Satürn ve dış gezegenler (Uranüs, Neptün, Plüton); MC'yi (kariyer ekseni) de yorumla.
+   Her yerleşim için ŞU FORMATI kullan:
+   - Önce o gezegenin/evin GENEL anlamını kısa açıkla.
+   - Yerleşimin YANINA neyi simgelediğini parantezle yaz. Örn: "Venüs Yay burcu, 9. ev (aşkta özgürlük, keşif ve yolculuk arzun)",
+     "Güneş Oğlak, 10. ev (kariyer, hırs ve toplumsal statün)". Ev anlamları: 1. ev kişilik/beden, 2. ev para/değerler, 3. ev iletişim,
+     4. ev yuva/aile, 5. ev aşk/yaratıcılık, 6. ev sağlık/iş rutini, 7. ev ilişkiler/ortaklık, 8. ev dönüşüm/ortak kaynaklar,
+     9. ev yolculuk/felsefe/yüksek öğrenim, 10. ev kariyer/statü, 11. ev arkadaşlık/idealler, 12. ev bilinçaltı/geri çekilme.
+   - Sonra bu kişiye ÖZEL yorumla: bu yerleşim karakterine, ilişkilerine, kariyerine nasıl yansır?
+   - Retro gezegenlere ve dikkat edilecek dönemlere kısa değin.
 
-<b>2. El Falı Analizi (Palmistry): ✋</b>
-   - El fotoğrafı yüklendiyse, palmistry analizi yap:
-   - Life line, Heart line, Head line, Fate line hakkında yorum yap.
-   - Bu çizgilerdeki belirgin özelliklere göre kullanıcının ruhsal ve fiziksel eğilimlerini açıkla.
+<b>2. El Falı Analizi (Palmistry):</b> ✋
+   "El Fotoğrafı Yüklendi mi" alanı "Evet" ise: bu mesaja EKLİ el fotoğrafındaki çizgilere BAKARAK yorumla.
+   Her çizgi için başlığı <h3>💖 Kalp Çizgisi — Duygusal Yaşam ve Bağlanma Biçimin</h3> gibi (çizginin neyi simgelediği başlıkta) yaz;
+   önce çizginin GENEL anlamını anlat (neyi temsil eder, uzun/kısa/kesikli/belirgin ne demek), SONRA fotoğrafa dayalı kişisel yorum yap.
+   Yaşam (💪), Kalp (💖), Kafa (🧠) ve Kader (🔮) çizgilerini işle.
+   Eğer "Hayır" ise bu bölümü kısa geç: el fotoğrafı yüklenmediği için el falı bölümünün atlandığını nazikçe belirt.
 
-<b>3. Doğum Haritası Analizi:</b>
-   - Kullanıcının doğum haritasını detaylı yorumla:
-   - Lütfen bu verilere göre doğum haritası hesapla ve astrolojik analizini yap. Önce teknik hesaplamaları yap (yükselen, evler, burçlar), sonra kişisel yorumla.
-   - Yükselen burcu, Güneş burcu, Ay burcu nedir?
-   - Güneş, Ay, Mars, Merkür, Venüs gibi gezegenlerin ev konumlarını yaz (örneğin: Güneş 10. evde).
-   - Ev konumlarına göre hayatın hangi alanlarında daha güçlü etkiler olduğunu anlat.
-   - Özellikle dikkat edilmesi gereken transit dönemlere (yıl, ay, olay) dair uyarı ver.
+<b>3. Astrocartography Analizi (Senin Seçtiğin Ülkeler):</b> 🌍
+   Önce astrocartography'nin ne olduğunu 1-2 cümle açıkla (gezegen hatları dünya üzerinde çizilir; bir hatta yakın yaşamak o gezegenin enerjisini yoğunlaştırır).
+   Sonra kullanıcının SEÇTİĞİ ülkeleri (yukarıdaki "Favori Şehirler") TEK TEK, dolu birer paragrafta yorumla. Her ülke/şehir için:
+   - Yaklaşık ENLEM ve BOYLAM ver. Örn: "🇶🇦 Doha: 25.3°N, 51.5°E".
+   - Bu kişinin HANGİ astro çizgisi oradan geçiyor (Güneş, Venüs, Satürn, Mars, Ay, Jüpiter hattı vb.), o çizginin GENEL anlamı ne,
+     ve o çizginin oradan geçmesinin bu kişiye NE KATTIĞI.
+   - Oraya gitmenin OLUMLU ve OLUMSUZ yönleri; kariyer, aşk ve iç huzur açısından ne kazandırır.
+   - Kişinin HEDEFLERİNE uygun mu, orada mutlu olur mu, hedeflerini yakalayabilir mi? Net ve içten değerlendir.
+   Aynı bilgiyi tekrar etme; her ülkeyi bütün olarak işle.
 
-<b>4. Ülke ve Şehir Önerileri:</b>
-   Bu bölümü İKİ ayrı parça halinde yaz:
+<b>4. Astroline'ın Önerisi (Sana Özel Ülkeler):</b> 🌟
+   "İşte Astroline'ın sana önerisi..." diye başla. Kişinin doğum haritasının TAMAMINI dikkate alarak DÜNYADAKİ ülkeleri değerlendir ve
+   ona en uygun 3-5 ülke/şehri SEÇ. Hep aynı bilindik yerleri (Yunanistan, Portekiz, Japonya) verme; YARATICI ol, haritasına gerçekten
+   oturan, beklenmedik ama isabetli yerler öner. Her biri için: bayrak + şehir, hangi astro hat baskın ve ne hissettirir, kültürel/iklimsel
+   uyum, oraya gidersen hayatında ne değişir ve neden tam ona göre. Örn: "🇬🇷 Atina: Venüs hattın burada güçlü, Akdeniz'in sıcaklığı
+   Ay burcunla örtüşür ve kendini evinde hissedersin."
 
-   🧳 Senin Seçtiğin Ülkeler: Kullanıcının seçtiği ülkeleri (yukarıdaki "Favori Şehirler")
-   TEK TEK ve DOYURUCU biçimde değerlendir (her biri için en az bir dolu paragraf). Her ülke için şunları anlat:
-   hangi astrocartography hattı etkili ve bu kişiye ne hissettirir; oraya gitmenin OLUMLU yönleri neler,
-   dikkat edilmesi gereken OLUMSUZ yönleri neler; kısa vadede mi yoksa uzun vadede mi uygun; kariyer, aşk ve
-   iç huzur açısından ne beklenir. Sonunda NET bir yargı ver: bu kişi oraya taşınmalı mı, hangi şartlarda gitmeli,
-   bir atılım yapmalı mı yoksa temkinli mi olmalı? Kişiyi karar verdirecek kadar somut, gerekçeli ve içten yaz.
+<b>5. Özet Tablo:</b> 📊
+   Tüm bulgulara dayalı özet tabloyu <table> etiketiyle oluştur (başlıklar: Şehir / Ülke, Astro Enerji, Neden Uygun, Etki Alanı).
 
-   🌟 Astroline'ın Önerisi: Cümleye "İşte Astroline'ın sana önerisi..." diye başla. Kullanıcının
-   doğum haritasına, içsel ihtiyaçlarına ve hedeflerine göre SEN dünyadaki herhangi bir ülke/şehri öner
-   (seçtiklerinden farklı olabilir). 3-5 ülke/şehir seç. Her biri için dolu bir paragraf yaz:
-   ülke bayrağı emojisi ve şehir, hangi astro hattı baskın ve ne hissettirir, kültürel/iklimsel uyum,
-   oraya gidersen hayatında ne değişir (kariyer, aşk, huzur) ve bu kişiye ne kadar uygun olduğu.
-   Sadece turistik değil, karaktere oturan içten bir kültürel aidiyet önerisi yap.
-   Örnek üslup: "🇬🇷 Atina: Venüs hattın burada güçlü, Akdeniz'in sıcaklığı Ay burcunla örtüşür ve kendini evinde hissedersin."
+<b>6. Genel Tavsiyeler ve Kapanış:</b> 🌠
+   Kişiye genel yaşam ve yön tavsiyeleri ver, her şeyi toparla. ESPRİLİ, sıcak ve samimi bir dille kişiyi memnun et.
+   En sonda, analizi okudukları ve sabırları için içten TEŞEKKÜR ederek kapat.
 
-
-<b>5. Özet Analiz:</b>
-  - Finalde aşağıdaki başlıklarla özet bir analiz oluştur:
-  - 📊 Şehir / Ülke | Astro Enerji | Neden Uygun | Etki Alanı (kariyer, sağlık, aşk)
-  - Tüm bulgulara dayalı özet tabloyu <table> etiketiyle oluştur.
-  - Tablo sonunda motive edici kapanış yaz.
-
-
-   - Kullanıcının doğum haritası, hedefleri ve enerjisine göre LLM olarak senin önerdiğin şehirleri ver.
-   - Bu kısımda cümleye işte Astroline'ın sana önerisi diye başla.
-   - Bu şehirler, kullanıcının doğum haritasına göre en uygun olanlar olmalı.
-   - Bu şehirlerin astrocartography çizgilerini ve etkilerini yaz.
-   - Hangi etkiler hangi alanlarda avantaj sağlar?
-   - Kullanıcının hedefleriyle nasıl örtüşüyor?
-   - Her şehir,ülke bilgisinin başına ülke bayrağı emojisini ekle. Metin içinde yıldız (*) kullanma. Tabloları HTML formatında dön.
-
-
-    ⚠️ Yazım Dili: Samimi, motive edici, ilham verici olmalı. Emojilerle destekle (☀️, 💖, 💼, 🧘‍♀️, 🌍).
-    - Sıralama yaptığında bu sırlamaların başında ülke adlarının başında * işaretini kullanma güzel gözükmüyor,
-    - * işareti yerine uygun emojilerle destekle ki okunaklı olsun ve okuyucunun dikkatini çeksin, göze hitap etsin.
-    - UI açısından kullanıcıya hitap etsin yani analiz rahat okunabilir olsun.
+    ⚠️ Yazım Dili: Samimi, motive edici, ilham verici ve yer yer esprili olsun. Emojilerle destekle (☀️, 💖, 💼, 🧘‍♀️, 🌍).
 
 ⚠️ DİL VE YAZIM (ÇOK ÖNEMLİ):
 - KUSURSUZ Türkçe yaz: dilbilgisi, imla ve noktalama kurallarına tam uy. Cümle düşüklüğü, tekrar, yarım cümle OLMASIN. Her cümle akıcı ve anlamlı olsun.
@@ -240,10 +221,12 @@ Aşağıdaki bilgilere göre çok kapsamlı, kişiye özel bir analiz yap:
 
 ⚠️ ÇIKTI BİÇİMİ (arayüzde düzgün görünmesi için ÇOK ÖNEMLİ):
 - Ana bölüm başlıklarını <h2>...</h2>, alt başlıkları <h3>...</h3>, vurguları <b>...</b> ile yaz.
+- ÖNEMLİ/çarpıcı cümleleri ve kilit içgörüleri <b>...</b> ile VURGULA (arayüzde altın/sarı renkte parlar).
+  Her paragrafta 1-2 kilit ifadeyi vurgula ki okuyucunun ilgisi canlı kalsın; ama her şeyi vurgulama, abartma.
 - ASLA markdown kullanma: #, ##, ###, ---, *** ve tek/çift yıldız (*, **) KESİNLİKLE YASAK.
 - Akıcı paragraflar yaz, bölümler arasında bir boş satır bırak. Metin arayüzde HTML olarak gösterilecek.
 ⚠️ UYARI: Analiz kısa olmasın. Minimum 1500 kelime olacak şekilde detaylı, tek seferlik ve kişiye özel yaz.
-⚠️ ÇOK ÖNEMLİ: 5 bölümün HEPSİNİ (Astrokartografi, El Falı, Doğum Haritası, Ülke Önerileri, Özet Tablo) UZUN ve DETAYLI yaz. Doğum haritasını ev ev (Güneş'in evi, Ay'ın evi... tek tek) yorumla; her bölümü doyurucu ve akıcı işle. Hiçbir bölümü ve cümleyi yarım bırakma; en sonda motive edici bir kapanışla bitir.
+⚠️ ÇOK ÖNEMLİ: 6 bölümün HEPSİNİ (Doğum Haritası, El Falı, Astrocartography, Astroline'ın Önerisi, Özet Tablo, Genel Tavsiyeler) UZUN ve DETAYLI yaz. Doğum haritasını ev ev (Güneş'in evi, Ay'ın evi... tek tek) yorumla; her bölümü doyurucu ve akıcı işle. Hiçbir bölümü ve cümleyi yarım bırakma; en sonda esprili ve teşekkür eden bir kapanışla bitir.
 ⚠️ Yazarken lütfen şu kurallara dikkat et:
 
 - Hiçbir yerde yıldız işareti (* veya **) kullanma.
@@ -278,32 +261,8 @@ Bu tablo başlıkları şöyle olacak:
 - Tablonun altına da Özetle kısmı açıp moral ve motivasyon verici kısa bir konuşma yaz.
     """
 
-    # 2️⃣ El FOTOĞRAFI yüklendiyse palmistry bölümü ekle. Not: foto, MediaPipe el
-    # tespit etsin etmesin vision modele gönderiliyor; bu yüzden mesajı hand_image'e
-    # göre veriyoruz (palm_analysis'e değil) — aksi halde "yüklenmedi" yanlış çıkıyordu.
-    if user_data.get("hand_image"):
-        prompt += """
-
-    <b>2. El Falı Analizi (Palmistry): ✋</b>
-
-    Bu mesaja kullanıcının EL FOTOĞRAFI eklendi. Fotoğraftaki avuç çizgilerine BAKARAK yorum yap
-    (çizgilerin konumu, uzunluğu, derinliği, kesikli/belirgin oluşu). Her çizgi türü için önce
-    genel anlamını açıkla, sonra bu kişinin fotoğrafına dayalı, kişiye özel sezgisel bir yorum yap:
-    - 💪 Yaşam Çizgisi (yeşil): yaşam enerjisi, dayanıklılık ve sağlık.
-    - 💖 Kalp Çizgisi (kırmızı): duygusal yaşam, ilişkiler ve bağlanma biçimi.
-    - 🧠 Kafa Çizgisi (turuncu): düşünce tarzı, mantık ve karar verme.
-    - 🔮 Kader Çizgisi (mor): kariyer yolu ve hayat yönü.
-
-    Not: Görsel bulanık veya çizgiler net değilse elinden geldiğince fotoğrafa dayalı yorumla;
-    "fotoğraf yüklenmedi" DEME (fotoğraf ekli). Her çizgiyi özgün ve pozitif değerlendir, şablon yazma.
-    """
-    else:
-        prompt += """
-    ✋ El çizgileri üzerine genel bilgi verildi ancak kişisel analiziniz yapılamadı çünkü el görseliniz yüklenmedi.
-    📸 Lütfen el fotoğrafınızı yüklerseniz, Astroline sizin için özel bir palmistry (el falı) analizi oluşturabilir.
-    """
-
-    print("🧠 Prompt:", prompt)
+    # El falı bölümü (2. bölüm) artık ana prompt'un içinde ve "El Fotoğrafı Yüklendi mi"
+    # bilgisine göre model tarafından koşullu işleniyor; ayrı ek blok gerekmiyor.
     return prompt
 
 

@@ -113,7 +113,10 @@ function buildResult(resultDiv, analyzeData, today) {
             <span class="page-indicator" id="an-indicator"></span>
             <button type="button" id="an-next">Sonraki ➡️</button>
         </div>
-        <p class="privacy-note">🔒 Gizlilik: Yüklediğiniz fotoğraf ve girdiğiniz bilgiler kalıcı olarak saklanmaz; analiz tamamlandıktan kısa süre sonra otomatik olarak silinir.</p>
+        <div class="privacy-note">
+            <p>🔒 <b>Gizlilik:</b> Yüklediğiniz fotoğraf ve girdiğiniz bilgiler kalıcı olarak saklanmaz; analiz tamamlandıktan kısa süre sonra otomatik olarak silinir.</p>
+            <p>⚠️ <b>Sorumluluk Reddi:</b> Astroline eğlence ve kişisel farkındalık amacıyla geliştirilmiştir. Yapay zekâ destekli astrolojik analizler, el falı ve doğum haritası yorumları bilimsel bir dayanağa sahip değildir. Uygulama; kendinizi keşfetmenize, düşünmenize ve eğlenceli bir deneyim yaşamanıza katkı sağlamak için tasarlanmıştır. Lütfen bu yorumları hayatınızda önemli kararlar alırken tek ve mutlak kaynak olarak değerlendirmeyin.</p>
+        </div>
     `;
 
     const pagesEl = resultDiv.querySelector("#analysis-pages");

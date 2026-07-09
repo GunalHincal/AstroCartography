@@ -528,8 +528,11 @@ input:hover, select:hover { border-color: rgba(124, 108, 255, 0.5); }
     font-size: 13px;
     color: var(--muted);
     text-align: center;
-    line-height: 1.6;
+    line-height: 1.65;
 }
+.privacy-note p { margin: 0 0 10px; }
+.privacy-note p:last-child { margin-bottom: 0; }
+.privacy-note b { color: #cdd2f5; }
 
 /* 📖 Dergi görünümü: bölümler sayfa sayfa */
 .analysis-page { display: none; }
