@@ -30,6 +30,7 @@ from pathlib import Path
 import os
 import shutil
 import json
+import time
 import logging
 import traceback
 from dotenv import load_dotenv
@@ -175,8 +176,13 @@ async def client_log(request: Request):
         data = await request.json()
     except Exception:
         data = {"raw": (await request.body()).decode("utf-8", "replace")[:500]}
-    logger.warning("CLIENT user=%s | %s", user_id, json.dumps(data, ensure_ascii=False)[:1200])
+    logger.warning("CLIENT user=%s rid=%s | %s",
+                   user_id, data.get("request_id", "-"),
+                   json.dumps(data, ensure_ascii=False)[:1200])
     if sentry_sdk:
+        rid = data.get("request_id")
+        if rid:
+            sentry_sdk.set_tag("request_id", rid)
         sentry_sdk.capture_message(
             f"CLIENT {data.get('type', '?')}: {data.get('message', '')}",
             level="warning",
@@ -247,65 +253,105 @@ async def get_user_answers(request: Request):
 
 @app.post("/analyze")
 async def analyze(request: Request):
+    t0 = time.monotonic()
     form_data = await request.form()
     user_data = dict(form_data)
 
+    # 🔗 İstek kimliği — frontend gönderirse onu kullan, yoksa üret. Böylece
+    # Sentry (client-log) ile Render backend loglarını AYNI rid ile eşleştiririz.
+    request_id = (str(user_data.get("request_id") or "").strip() or uuid4().hex)[:36]
+    user_id = request.cookies.get("user_id", "?")
+    if sentry_sdk:
+        sentry_sdk.set_tag("request_id", request_id)
+
     hand_image = form_data.get("hand_image")
+    has_hand = bool(hand_image and hasattr(hand_image, "filename") and hand_image.filename)
+
+    # 🔎 Başlangıç logu — PRIVACY-SAFE: sadece meta veri, görsel İÇERİĞİ/base64 ASLA loglanmaz.
+    logger.info(
+        "ANALYZE start | rid=%s user=%s hand=%s name=%s type=%s size=%s",
+        request_id, user_id, has_hand,
+        getattr(hand_image, "filename", None) if has_hand else None,
+        getattr(hand_image, "content_type", None) if has_hand else None,
+        getattr(hand_image, "size", None) if has_hand else None,
+    )
+
     file_location = None
     image_url = None  # Çizgili el görselinin web yolu (/static/...)
 
-    if hand_image and hasattr(hand_image, "filename") and hand_image.filename:
-        try:
-            file_location = await save_uploaded_image(hand_image)
-            user_data["hand_image"] = file_location
-        except ValueError as e:
-            return JSONResponse(content={"analysis": f"❌ {e}"}, status_code=400)
-    else:
-        user_data["hand_image"] = None
-
-    # ✅ El görseli varsa analiz et (ve hata yoksa palm_analysis içine ekle)
-    if user_data.get("hand_image"):
-        from backend.hand_analysis import analyze_hand_image, detect_palm_lines
-
-        # MediaPipe/OpenCV bloklayıcı ve bellek-yoğun → thread'e al + eşzamanlılık sınırı.
-        # Böylece olay döngüsü bloklanmaz ve aynı anda çok kişi belleği patlatmaz.
-        processed_abs_path = None
-        async with ANALYZE_SEMAPHORE:
-            palm_result = await asyncio.to_thread(analyze_hand_image, user_data["hand_image"])
-            if "error" not in palm_result:
-                user_data["palm_analysis"] = palm_result
+    try:
+        if has_hand:
             try:
-                processed_abs_path, image_url = await asyncio.to_thread(
-                    detect_palm_lines, user_data["hand_image"]
-                )
-            except Exception as e:
-                print(f"⚠️ El çizgisi görseli üretilemedi: {e}")
+                file_location = await save_uploaded_image(hand_image)
+                user_data["hand_image"] = file_location
+                logger.info("ANALYZE image saved | rid=%s size_bytes=%s",
+                            request_id, os.path.getsize(file_location))
+            except ValueError as e:
+                logger.warning("ANALYZE bad image | rid=%s %s", request_id, e)
+                return JSONResponse(content={"analysis": f"❌ {e}", "request_id": request_id}, status_code=400)
+        else:
+            user_data["hand_image"] = None
 
-        # 🧹 5 dakika sonra hem orijinal hem işlenmiş görseli sil
-        def _safe_remove(p):
-            try:
-                if p and os.path.exists(p):
-                    os.remove(p)
-            except OSError:
-                pass
+        if user_data.get("hand_image"):
+            from backend.hand_analysis import analyze_hand_image, detect_palm_lines
 
-        threading.Timer(300, _safe_remove, args=[file_location]).start()
-        if processed_abs_path:
-            threading.Timer(300, _safe_remove, args=[processed_abs_path]).start()
+            # MediaPipe/OpenCV bloklayıcı ve bellek-yoğun → thread + eşzamanlılık sınırı.
+            processed_abs_path = None
+            async with ANALYZE_SEMAPHORE:
+                palm_result = await asyncio.to_thread(analyze_hand_image, user_data["hand_image"])
+                if "error" not in palm_result:
+                    user_data["palm_analysis"] = palm_result
+                else:
+                    logger.info("ANALYZE no-hand-detected | rid=%s %s", request_id, palm_result.get("error"))
+                try:
+                    processed_abs_path, image_url = await asyncio.to_thread(
+                        detect_palm_lines, user_data["hand_image"]
+                    )
+                except Exception as e:
+                    logger.warning("ANALYZE palm draw failed | rid=%s %s", request_id, e)
 
-    # 🤖 LLM (Claude) — ASENKRON, olay döngüsünü bloklamaz (çok kişi aynı anda bekleyebilir)
-    raw_analysis = await analyze_user(user_data, anthropic_client)
+            def _safe_remove(p):
+                try:
+                    if p and os.path.exists(p):
+                        os.remove(p)
+                except OSError:
+                    pass
 
-    if raw_analysis is None:
-        return JSONResponse(content={"analysis": "❌ Gerekli bilgiler eksik. Lütfen formu eksiksiz doldurun."}, status_code=400)
+            threading.Timer(300, _safe_remove, args=[file_location]).start()
+            if processed_abs_path:
+                threading.Timer(300, _safe_remove, args=[processed_abs_path]).start()
 
-    analysis_text, html_table = extract_table_from_analysis(raw_analysis)
+        # 🤖 LLM (Claude) — asenkron
+        raw_analysis = await analyze_user(user_data, anthropic_client)
 
-    return JSONResponse(content={
-        "text": analysis_text,
-        "table": html_table,
-        "image_url": image_url  # ✅ Görsel frontend'e gönderilir
-    })
+        if raw_analysis is None:
+            logger.warning("ANALYZE missing-info | rid=%s", request_id)
+            return JSONResponse(
+                content={"analysis": "❌ Gerekli bilgiler eksik. Lütfen formu eksiksiz doldurun.", "request_id": request_id},
+                status_code=400,
+            )
+
+        analysis_text, html_table = extract_table_from_analysis(raw_analysis)
+        elapsed = int((time.monotonic() - t0) * 1000)
+        logger.info("ANALYZE success | rid=%s status=success elapsed_ms=%d hand_used=%s",
+                    request_id, elapsed, bool(user_data.get("hand_image")))
+        return JSONResponse(content={
+            "text": analysis_text,
+            "table": html_table,
+            "image_url": image_url,
+            "request_id": request_id,
+        })
+
+    except Exception as exc:
+        elapsed = int((time.monotonic() - t0) * 1000)
+        logger.error("ANALYZE error | rid=%s status=error elapsed_ms=%d %s: %s",
+                     request_id, elapsed, type(exc).__name__, exc, exc_info=True)
+        if sentry_sdk:
+            sentry_sdk.capture_exception(exc)
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Analiz sırasında bir hata oluştu.", "request_id": request_id},
+        )
 
 # 🔐 Google Maps (Places) API anahtarı
 # NOT: Bu anahtar tarayıcıda Maps JS API'yi yüklemek için gereklidir; bu yüzden

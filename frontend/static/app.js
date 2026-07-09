@@ -25,6 +25,16 @@ window.addEventListener("unhandledrejection", (e) => {
     reportClientError({ type: "promise-reject", message: String(e.reason && e.reason.message || e.reason) });
 });
 
+// 🖐️ El fotoğrafı meta bilgisi (İÇERİK/base64 ASLA gönderilmez — sadece seçildi mi + ad/tip/boyut)
+function handFileInfo() {
+    try {
+        const el = document.getElementById("hand_image");
+        const f = el && el.files && el.files[0];
+        if (!f) return { hand_selected: false };
+        return { hand_selected: true, hand_name: f.name, hand_type: f.type, hand_size: f.size };
+    } catch (e) { return { hand_selected: null }; }
+}
+
 // 🎨 LLM çıktısını temiz HTML'e çevirir: markdown (##, ---, **) temizlenir,
 // bölüm başlıkları <h2>/<h3> olur; tablolar ve <b> etiketleri korunur.
 function renderAnalysis(text) {
@@ -282,7 +292,15 @@ form.addEventListener('submit', async (e) => {
 
     const formData = new FormData(form);
     const resultDiv = document.getElementById('result');
-    
+
+    // 🔗 İstek kimliği — backend logları ile aynı rid üzerinden eşleştirme + süre ölçümü
+    const requestId = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : (Date.now() + "-" + Math.random().toString(16).slice(2));
+    formData.append("request_id", requestId);
+    const startTime = performance.now();
+    let respStatus = null;
+
     resultDiv.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;">
         <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="yellow" class="spinner">
           <path d="M12 2l2 7h7l-6 4.5 2 7-6-4.5-6 4.5 2-7-6-4.5h7z"/>
@@ -309,10 +327,11 @@ form.addEventListener('submit', async (e) => {
             method: 'POST',
             body: formData
         });
+        respStatus = analyzeRes.status;
 
         if (!analyzeRes.ok) {
             const errText = await analyzeRes.text();
-            throw new Error(`Sunucu hatası: ${errText}`);
+            throw new Error(`Sunucu hatası ${respStatus}: ${errText}`);
         }
 
         const analyzeData = await analyzeRes.json();
@@ -388,8 +407,17 @@ form.addEventListener('submit', async (e) => {
 
     } catch (error) {
         resultDiv.innerHTML = "<p style='color:red;'>❌ Bir hata oluştu. Lütfen tekrar deneyin.</p>";
-        console.error("🛑 Hata:", error.message);
-        reportClientError({ type: "analyze-failed", message: String(error && error.message || error) });
+        console.error("🛑 Hata:", error && error.message);
+        // Zengin, PRIVACY-SAFE hata raporu (görsel içeriği/base64 YOK, sadece meta)
+        reportClientError(Object.assign({
+            type: "analyze-failed",
+            request_id: requestId,
+            elapsed_ms: Math.round(performance.now() - startTime),
+            status: respStatus,
+            errorName: error && error.name,
+            message: String(error && error.message || error),
+            stack: error && error.stack ? String(error.stack).slice(0, 600) : undefined,
+        }, handFileInfo()));
     }
 });
 

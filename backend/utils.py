@@ -279,9 +279,10 @@ Bu tablo başlıkları şöyle olacak:
 - Tablonun altına da Özetle kısmı açıp moral ve motivasyon verici kısa bir konuşma yaz.
     """
 
-    # 2️⃣ El görseli yüklenmiş ve el tespit edilmişse detaylı palmistry bölümü ekle
-    palm = user_data.get("palm_analysis")
-    if isinstance(palm, dict) and "error" not in palm:
+    # 2️⃣ El FOTOĞRAFI yüklendiyse palmistry bölümü ekle. Not: foto, MediaPipe el
+    # tespit etsin etmesin vision modele gönderiliyor; bu yüzden mesajı hand_image'e
+    # göre veriyoruz (palm_analysis'e değil) — aksi halde "yüklenmedi" yanlış çıkıyordu.
+    if user_data.get("hand_image"):
         prompt += """
 
     <b>2. El Falı Analizi (Palmistry): ✋</b>
@@ -294,7 +295,8 @@ Bu tablo başlıkları şöyle olacak:
     - 🧠 Kafa Çizgisi (turuncu): düşünce tarzı, mantık ve karar verme.
     - 🔮 Kader Çizgisi (mor): kariyer yolu ve hayat yönü.
 
-    Her çizgiyi özgün, kişiye özel ve pozitif bir dille değerlendir. Örnek/şablon veri yazma.
+    Not: Görsel bulanık veya çizgiler net değilse elinden geldiğince fotoğrafa dayalı yorumla;
+    "fotoğraf yüklenmedi" DEME (fotoğraf ekli). Her çizgiyi özgün ve pozitif değerlendir, şablon yazma.
     """
     else:
         prompt += """
