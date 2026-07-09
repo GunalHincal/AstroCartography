@@ -243,8 +243,7 @@ Aşağıdaki bilgilere göre çok kapsamlı, kişiye özel bir analiz yap:
 - ASLA markdown kullanma: #, ##, ###, ---, *** ve tek/çift yıldız (*, **) KESİNLİKLE YASAK.
 - Akıcı paragraflar yaz, bölümler arasında bir boş satır bırak. Metin arayüzde HTML olarak gösterilecek.
 ⚠️ UYARI: Analiz kısa olmasın. Minimum 1500 kelime olacak şekilde detaylı, tek seferlik ve kişiye özel yaz.
-⚠️ ÇOK ÖNEMLİ: 5 bölümün HEPSİNİ (Astrokartografi, El Falı, Doğum Haritası, Ülke Önerileri, Özet Tablo) eksiksiz TAMAMLA. Hiçbir bölümü ve hiçbir cümleyi yarım bırakma; en sonda motive edici bir kapanış cümlesiyle bitir.
-⚠️ Kapanış/öneri bölümünü ÖZ tut (en fazla 3-4 kısa madde). Gereksiz uzatma; ama başladığın cümleyi ve bölümü MUTLAKA tamamla, yarım bırakma.
+⚠️ ÇOK ÖNEMLİ: 5 bölümün HEPSİNİ (Astrokartografi, El Falı, Doğum Haritası, Ülke Önerileri, Özet Tablo) UZUN ve DETAYLI yaz. Doğum haritasını ev ev (Güneş'in evi, Ay'ın evi... tek tek) yorumla; her bölümü doyurucu ve akıcı işle. Hiçbir bölümü ve cümleyi yarım bırakma; en sonda motive edici bir kapanışla bitir.
 ⚠️ Yazarken lütfen şu kurallara dikkat et:
 
 - Hiçbir yerde yıldız işareti (* veya **) kullanma.

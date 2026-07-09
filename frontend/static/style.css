@@ -28,8 +28,8 @@ body {
     font-family: var(--font);
     color: var(--text);
     background:
-        radial-gradient(1200px 800px at 15% -10%, rgba(124, 108, 255, 0.14), transparent 60%),
-        radial-gradient(1000px 700px at 100% 0%, rgba(34, 211, 238, 0.12), transparent 55%),
+        radial-gradient(1200px 800px at 15% -10%, rgba(124, 108, 255, 0.20), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(34, 211, 238, 0.15), transparent 55%),
         linear-gradient(160deg, #0a0e22 0%, #12132f 60%, #05060f 92%),
         url('/static/stars_background.png');
     background-size: cover, cover, cover, cover;
@@ -205,23 +205,23 @@ body::before {
     z-index: -2;
     pointer-events: none;
     background-image:
-        linear-gradient(rgba(124, 108, 255, 0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(124, 108, 255, 0.06) 1px, transparent 1px);
+        linear-gradient(rgba(124, 108, 255, 0.10) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 108, 255, 0.10) 1px, transparent 1px);
     background-size: 46px 46px;
-    -webkit-mask-image: radial-gradient(circle at 50% 22%, #000, transparent 78%);
-    mask-image: radial-gradient(circle at 50% 22%, #000, transparent 78%);
+    -webkit-mask-image: radial-gradient(circle at 50% 25%, #000, transparent 88%);
+    mask-image: radial-gradient(circle at 50% 25%, #000, transparent 88%);
 }
 
-/* İmleci takip eden yumuşak ışıma */
+/* İmleci takip eden GÜÇLÜ ışıma (görsel şölen) */
 body::after {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background: radial-gradient(600px circle at var(--mx) var(--my),
-        rgba(124, 108, 255, 0.16), rgba(34, 211, 238, 0.06) 42%, transparent 62%);
-    transition: background 0.08s linear;
+    background: radial-gradient(760px circle at var(--mx) var(--my),
+        rgba(124, 108, 255, 0.26), rgba(34, 211, 238, 0.12) 38%, rgba(240, 171, 252, 0.06) 55%, transparent 66%);
+    transition: background 0.06s linear;
 }
 
 /* Kartlar: imleç kartın üzerinde nereye giderse orada parlar */
@@ -290,7 +290,9 @@ input:hover, select:hover { border-color: rgba(124, 108, 255, 0.5); }
     /* Her şeyi gizle, sadece #result'u göster */
     body * { visibility: hidden; }
     #result, #result * { visibility: visible; }
-    .no-print { display: none !important; }
+    .no-print, .page-nav { display: none !important; }
+    /* PDF'te TÜM bölümler görünsün (dergi sayfalama sadece ekranda) */
+    .analysis-page { display: block !important; }
 
     #result {
         position: absolute;
@@ -527,6 +529,27 @@ input:hover, select:hover { border-color: rgba(124, 108, 255, 0.5); }
     color: var(--muted);
     text-align: center;
     line-height: 1.6;
+}
+
+/* 📖 Dergi görünümü: bölümler sayfa sayfa */
+.analysis-page { display: none; }
+.analysis-page.active { display: block; animation: fadeIn 0.35s ease; }
+
+.page-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+.page-nav button { margin: 0; }
+.page-indicator {
+    color: var(--muted);
+    font-size: 0.9rem;
+    min-width: 120px;
+    text-align: center;
+    letter-spacing: 0.4px;
 }
 
 /* ---------- Spinner ---------- */

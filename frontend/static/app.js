@@ -67,6 +67,76 @@ function downloadPdf() {
     setTimeout(() => { document.title = prevTitle; }, 800);
 }
 
+// 📖 Analizi "dergi" gibi sayfa sayfa göster (uzun metni bölümlere ayır, ileri/geri)
+function buildResult(resultDiv, analyzeData, today) {
+    // Metni <h2> başlıklarına göre bölümlere ayır
+    const tmp = document.createElement("div");
+    tmp.innerHTML = renderAnalysis(analyzeData.text);
+    let sections = [];
+    let cur = null;
+    Array.from(tmp.childNodes).forEach((node) => {
+        const isH2 = node.nodeType === 1 && node.tagName === "H2";
+        if (isH2 || !cur) {
+            cur = document.createElement("section");
+            cur.className = "analysis-page analysis-body";
+            sections.push(cur);
+        }
+        cur.appendChild(node.cloneNode(true));
+    });
+    // Boş bölümleri ele
+    sections = sections.filter(s => s.textContent.trim() || s.querySelector("table,img"));
+    // Özet tablosunu kendi sayfası yap
+    if (analyzeData.table) {
+        const t = document.createElement("section");
+        t.className = "analysis-page analysis-body";
+        t.innerHTML = analyzeData.table;
+        sections.push(t);
+    }
+    if (sections.length === 0) {
+        const s = document.createElement("section");
+        s.className = "analysis-page analysis-body";
+        s.innerHTML = renderAnalysis(analyzeData.text);
+        sections.push(s);
+    }
+
+    resultDiv.innerHTML = `
+        <div class="report-header">
+            <div class="report-brand">🪐 Astroline — Kişisel Analiz</div>
+            <div class="report-meta">
+                <span class="report-date">${today}</span>
+                <button type="button" class="pdf-btn no-print" onclick="downloadPdf()">📄 PDF olarak indir</button>
+            </div>
+        </div>
+        <div id="analysis-pages"></div>
+        <div class="page-nav no-print">
+            <button type="button" id="an-prev">⬅️ Önceki</button>
+            <span class="page-indicator" id="an-indicator"></span>
+            <button type="button" id="an-next">Sonraki ➡️</button>
+        </div>
+        <p class="privacy-note">🔒 Gizlilik: Yüklediğiniz fotoğraf ve girdiğiniz bilgiler kalıcı olarak saklanmaz; analiz tamamlandıktan kısa süre sonra otomatik olarak silinir.</p>
+    `;
+
+    const pagesEl = resultDiv.querySelector("#analysis-pages");
+    sections.forEach(s => pagesEl.appendChild(s));
+
+    let idx = 0;
+    const prevBtn = resultDiv.querySelector("#an-prev");
+    const nextBtn = resultDiv.querySelector("#an-next");
+    const indicator = resultDiv.querySelector("#an-indicator");
+
+    function show(i) {
+        idx = Math.max(0, Math.min(sections.length - 1, i));
+        sections.forEach((s, k) => s.classList.toggle("active", k === idx));
+        prevBtn.disabled = idx === 0;
+        nextBtn.disabled = idx === sections.length - 1;
+        indicator.textContent = `Bölüm ${idx + 1} / ${sections.length}`;
+        resultDiv.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    prevBtn.addEventListener("click", () => show(idx - 1));
+    nextBtn.addEventListener("click", () => show(idx + 1));
+    show(0);
+}
+
 
 // 💾 Kullanıcı verilerini backend'e kaydeder
 async function saveAnswer(key, value) {
@@ -336,20 +406,9 @@ form.addEventListener('submit', async (e) => {
 
         const analyzeData = await analyzeRes.json();
 
-        // 🧠 Analiz metni (temiz HTML), rapor başlığı ve tabloyu göster
+        // 🧠 Analizi "dergi" gibi sayfa sayfa göster
         const today = new Date().toLocaleDateString("tr-TR");
-        resultDiv.innerHTML = `
-        <div class="report-header">
-            <div class="report-brand">🪐 Astroline — Kişisel Analiz</div>
-            <div class="report-meta">
-                <span class="report-date">${today}</span>
-                <button type="button" class="pdf-btn no-print" onclick="downloadPdf()">📄 PDF olarak indir</button>
-            </div>
-        </div>
-        <div class="analysis-body">${renderAnalysis(analyzeData.text)}</div>
-        ${analyzeData.table || ''}
-        <p class="privacy-note">🔒 Gizlilik: Yüklediğiniz fotoğraf ve girdiğiniz bilgiler kalıcı olarak saklanmaz; analiz tamamlandıktan kısa süre sonra otomatik olarak silinir.</p>
-        `;
+        buildResult(resultDiv, analyzeData, today);
 
     } catch (error) {
         resultDiv.innerHTML = "<p style='color:red;'>❌ Bir hata oluştu. Lütfen tekrar deneyin.</p>";
