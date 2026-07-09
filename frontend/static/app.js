@@ -348,62 +348,8 @@ form.addEventListener('submit', async (e) => {
         </div>
         <div class="analysis-body">${renderAnalysis(analyzeData.text)}</div>
         ${analyzeData.table || ''}
+        <p class="privacy-note">🔒 Gizlilik: Yüklediğiniz fotoğraf ve girdiğiniz bilgiler kalıcı olarak saklanmaz; analiz tamamlandıktan kısa süre sonra otomatik olarak silinir.</p>
         `;
-
-        // 🖼️ El çizgisi görseli varsa göster ve açıklama kutusunu ekle
-        if (analyzeData.image_url) {
-        const imageWrapper = document.createElement("div");
-        imageWrapper.style.cssText = "margin-top: 30px; text-align: center;";
-
-        const imageElement = document.createElement("img");
-        imageElement.src = analyzeData.image_url;
-        imageElement.alt = "El Çizgileri Analizi";
-        imageElement.style.cssText = `
-            max-width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-            margin-bottom: 10px;
-        `;
-
-        // 📘 Açıklama kutusu
-        const desc = document.createElement("p");
-        desc.innerHTML = "🖐️ Aşağıdaki görselde tespit edilen el çizgileriniz renklendirilmiştir. Her renk farklı bir çizgiyi temsil eder.";
-        desc.style.cssText = "font-size: 16px; margin-bottom: 10px;";
-
-        // 📥 İndir butonu
-        const downloadBtn = document.createElement("a");
-        downloadBtn.href = analyzeData.image_url;
-        downloadBtn.download = "el_analizli.jpeg";
-        downloadBtn.className = "no-print";
-        downloadBtn.textContent = "📥 Görseli İndir";
-        downloadBtn.style.cssText = `
-            display: inline-block;
-            margin: 10px;
-            padding: 8px 16px;
-            background-color: #008CBA;
-            color: white;
-            border-radius: 6px;
-            text-decoration: none;
-        `;
-
-        // ❓ Çizgi açıklamaları
-        const legendBox = document.createElement("div");
-        legendBox.style.cssText = "margin-top: 20px; text-align: left; font-size: 15px;";
-        legendBox.innerHTML = `
-            <strong>🔎 Çizgilerin Anlamı:</strong><br>
-            <span style="color:red;">💖 Kalp Çizgisi</span>: Duygusal yaşam ve ilişkiler<br>
-            <span style="color:green;">💪 Yaşam Çizgisi</span>: Hayat enerjisi ve dayanıklılık<br>
-            <span style="color:orange;">🧠 Kafa Çizgisi</span>: Zeka, düşünce yapısı<br>
-            <span style="color:purple;">🔮 Kader Çizgisi</span>: Hayat yolu, kariyer yönü<br>
-        `;
-
-        imageWrapper.appendChild(desc);
-        imageWrapper.appendChild(imageElement);
-        imageWrapper.appendChild(downloadBtn);
-        imageWrapper.appendChild(legendBox);
-
-        resultDiv.appendChild(imageWrapper);
-        }
 
     } catch (error) {
         resultDiv.innerHTML = "<p style='color:red;'>❌ Bir hata oluştu. Lütfen tekrar deneyin.</p>";

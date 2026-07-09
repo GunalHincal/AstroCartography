@@ -56,7 +56,6 @@ def _build_image_block(image_path: str) -> Optional[dict]:
 # Buradaki eski, hatalı ikinci tanım kaldırıldı (Datetime'ı eksik argümanla
 # çağırıyor ve import edilen doğru fonksiyonu gölgeliyordu).
 from backend.astro_utils import calculate_birth_chart, empty_chart
-from backend.hand_analysis import detect_palm_lines
 
 
 def format_goals(goals):
@@ -245,6 +244,7 @@ Aşağıdaki bilgilere göre çok kapsamlı, kişiye özel bir analiz yap:
 - Akıcı paragraflar yaz, bölümler arasında bir boş satır bırak. Metin arayüzde HTML olarak gösterilecek.
 ⚠️ UYARI: Analiz kısa olmasın. Minimum 1500 kelime olacak şekilde detaylı, tek seferlik ve kişiye özel yaz.
 ⚠️ ÇOK ÖNEMLİ: 5 bölümün HEPSİNİ (Astrokartografi, El Falı, Doğum Haritası, Ülke Önerileri, Özet Tablo) eksiksiz TAMAMLA. Hiçbir bölümü ve hiçbir cümleyi yarım bırakma; en sonda motive edici bir kapanış cümlesiyle bitir.
+⚠️ Kapanış/öneri bölümünü ÖZ tut (en fazla 3-4 kısa madde). Gereksiz uzatma; ama başladığın cümleyi ve bölümü MUTLAKA tamamla, yarım bırakma.
 ⚠️ Yazarken lütfen şu kurallara dikkat et:
 
 - Hiçbir yerde yıldız işareti (* veya **) kullanma.
@@ -331,7 +331,7 @@ async def analyze_user(user_data: dict, client: AsyncAnthropic) -> Optional[str]
 
     response = await client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=12000,  # 8192 uzun analizlerde yarım bırakıyordu; tamamlanması için artırıldı
+        max_tokens=16000,  # analizin (kapanış dahil) yarım kalmaması için tavan; model doğal biter
         messages=[{"role": "user", "content": content}],
     )
 

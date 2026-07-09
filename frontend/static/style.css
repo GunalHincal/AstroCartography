@@ -494,6 +494,41 @@ input:hover, select:hover { border-color: rgba(124, 108, 255, 0.5); }
 .result-table td { background: rgba(10, 12, 30, 0.6); color: #f0f1ff; }
 .result-table tr:nth-child(even) td { background: rgba(124, 108, 255, 0.12); }
 
+/* Sonuç içindeki HER tablo okunur olsun — LLM bazen kendi <table>'ını üretiyor.
+   Açık zeminde açık yazı sorununu bu koyu-hücre/parlak-yazı kuralı çözer. */
+#result table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 22px;
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 15px;
+}
+#result th, #result td {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 11px 14px;
+    text-align: left;
+    vertical-align: top;
+}
+#result th {
+    background: linear-gradient(135deg, rgba(124, 108, 255, 0.5), rgba(34, 211, 238, 0.32));
+    color: #ffffff;
+    font-weight: 700;
+}
+#result td { background: rgba(12, 14, 34, 0.85); color: #eef0ff; }
+#result tr:nth-child(even) td { background: rgba(124, 108, 255, 0.16); }
+
+/* Gizlilik notu (analiz sonu) */
+.privacy-note {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.6;
+}
+
 /* ---------- Spinner ---------- */
 .spinner { animation: spin 1.4s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }

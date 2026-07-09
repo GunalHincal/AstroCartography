@@ -41,7 +41,6 @@ except ImportError:
     sentry_sdk = None
 from backend.utils import analyze_user
 from backend.utils import extract_table_from_analysis
-from backend.hand_analysis import analyze_hand_image
 from uuid import uuid4
 import asyncio
 # 📍 Koordinatlara göre TimeZone hesaplama
@@ -97,10 +96,6 @@ GOOGLE_PLACES_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 # 🔮 Claude (Anthropic) ASENKRON istemci — LLM çağrısı olay döngüsünü bloklamaz.
 # Model seçimi backend/utils.py içindeki CLAUDE_MODEL sabitindedir (şu an Haiku 4.5).
 anthropic_client = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
-
-# 🚦 Ağır (MediaPipe/OpenCV) el işleme için eşzamanlılık sınırı — belleği korur.
-# Aynı anda en fazla bu kadar el analizi yapılır; fazlası kısa süre kuyrukta bekler.
-ANALYZE_SEMAPHORE = asyncio.Semaphore(int(os.getenv("MAX_CONCURRENT_ANALYSES", "4")))
 
 # 🚀 FastAPI app oluştur
 app = FastAPI()
@@ -193,16 +188,19 @@ async def client_log(request: Request):
 # 🏠 Ana sayfa (GET ve HEAD — HEAD'de de 405 yerine 200 döner)
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def home(request: Request):
+    # 🩺 HEAD (health/probe) isteklerinde kullanıcı ID ATAMA ve LOG BASMA.
+    # UptimeRobot/Render probe'ları "kullanıcı" gibi görünmesin.
+    if request.method != "GET":
+        return templates.TemplateResponse(request, "index.html")
+
     user_id = request.cookies.get("user_id")
     if not user_id:
+        # Sadece gerçek GET sayfa açılışında yeni ID ata + Set-Cookie yaz + logla
         user_id = str(uuid4())
-        # Yeni Starlette imzası: TemplateResponse(request, name, context=...)
         response = templates.TemplateResponse(request, "index.html")
         response.set_cookie(key="user_id", value=user_id, httponly=True, samesite="lax")
-        print(f"🆔 Yeni kullanıcıya ID atandı: {user_id}")
+        logger.info("Yeni kullanıcıya ID atandı: %s", user_id)
         return response
-    else:
-        print(f"👤 Var olan kullanıcı tekrar giriş yaptı: {user_id}")
     return templates.TemplateResponse(request, "index.html")
 
 # 📅 Kullanıcıdan gelen her cevabı kaydet
@@ -221,30 +219,6 @@ async def save_answer(request: Request, key: str = Form(...), value: str = Form(
     user_data[user_id][key] = value
     print(f"✅ [{user_id}] için kaydedilen veri: {key} = {value}")
     return {"message": "Cevap kaydedildi."}
-
-# 🗐 El fotoğrafı yükle
-@app.post("/upload_hand_image")
-async def upload_hand_image(request: Request, file: UploadFile = File(...)):
-    try:
-        file_location = await save_uploaded_image(file)
-    except ValueError as e:
-        return JSONResponse(content={"error": str(e)}, status_code=400)
-
-    # Cookie'den kullanıcı kimliği al
-    user_id = request.cookies.get("user_id", "default")
-    # Kullanıcı verisi yoksa başlat
-    if user_id not in user_data:
-        user_data[user_id] = {}
-
-    # 🔸 Frontend'in kullanabileceği yol
-    relative_path = f"static/uploads/{os.path.basename(file_location)}"
-
-    # Görseli kaydet ve analiz et
-    user_data[user_id]["hand_image"] = file_location
-    palm_prompt = analyze_hand_image(file_location)
-    user_data[user_id]["palm_analysis"] = palm_prompt
-
-    return {"message": "El fotoğrafı yüklendi ve analiz edildi.", "path": relative_path}
 
 # 🔎 Kullanıcı verilerini oku
 async def get_user_answers(request: Request):
@@ -277,7 +251,7 @@ async def analyze(request: Request):
     )
 
     file_location = None
-    image_url = None  # Çizgili el görselinin web yolu (/static/...)
+    image_url = None  # El çizgisi overlay'i kaldırıldı; foto yalnızca vision modeline gider
 
     try:
         if has_hand:
@@ -289,39 +263,19 @@ async def analyze(request: Request):
             except ValueError as e:
                 logger.warning("ANALYZE bad image | rid=%s %s", request_id, e)
                 return JSONResponse(content={"analysis": f"❌ {e}", "request_id": request_id}, status_code=400)
-        else:
-            user_data["hand_image"] = None
 
-        if user_data.get("hand_image"):
-            from backend.hand_analysis import analyze_hand_image, detect_palm_lines
-
-            # MediaPipe/OpenCV bloklayıcı ve bellek-yoğun → thread + eşzamanlılık sınırı.
-            processed_abs_path = None
-            async with ANALYZE_SEMAPHORE:
-                palm_result = await asyncio.to_thread(analyze_hand_image, user_data["hand_image"])
-                if "error" not in palm_result:
-                    user_data["palm_analysis"] = palm_result
-                else:
-                    logger.info("ANALYZE no-hand-detected | rid=%s %s", request_id, palm_result.get("error"))
-                try:
-                    processed_abs_path, image_url = await asyncio.to_thread(
-                        detect_palm_lines, user_data["hand_image"]
-                    )
-                except Exception as e:
-                    logger.warning("ANALYZE palm draw failed | rid=%s %s", request_id, e)
-
+            # 🧹 Yüklenen görseli 5 dakika sonra sil (kalıcı saklanmaz)
             def _safe_remove(p):
                 try:
                     if p and os.path.exists(p):
                         os.remove(p)
                 except OSError:
                     pass
-
             threading.Timer(300, _safe_remove, args=[file_location]).start()
-            if processed_abs_path:
-                threading.Timer(300, _safe_remove, args=[processed_abs_path]).start()
+        else:
+            user_data["hand_image"] = None
 
-        # 🤖 LLM (Claude) — asenkron
+        # 🤖 LLM (Claude) — asenkron. El fotoğrafını vision olarak okur (overlay çizmeden).
         raw_analysis = await analyze_user(user_data, anthropic_client)
 
         if raw_analysis is None:
