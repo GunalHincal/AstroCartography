@@ -67,6 +67,7 @@ SENTRY_DSN = os.getenv("SENTRY_DSN")
 if SENTRY_DSN and sentry_sdk:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
+        environment=os.getenv("APP_ENV", "development"),  # lokal/canlı hataları ayır
         send_default_pii=False,     # IP/başlık gönderme (gizlilik). İstersen True yap.
         enable_logs=True,           # logları Sentry'ye ilet
         traces_sample_rate=0.3,     # performans örnekleme; kotayı korumak için 0.3
@@ -181,12 +182,6 @@ async def client_log(request: Request):
             level="warning",
         )
     return {"ok": True}
-
-
-# 🧪 TEST: Sentry'ye örnek hata gönderir. Doğruladıktan sonra bu route'u silebilirsin.
-@app.get("/sentry-debug")
-async def sentry_debug():
-    _ = 1 / 0  # bilerek ZeroDivisionError
 
 
 # 🏠 Ana sayfa (GET ve HEAD — HEAD'de de 405 yerine 200 döner)
