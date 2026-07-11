@@ -94,15 +94,8 @@ def create_prompt(user_data: dict) -> str:
     longitude = user_data.get("birth_lng") or user_data.get("longitude")
     timezone = user_data.get("birth_timezone") or user_data.get("timezone")
 
-    # Gelen verileri ekrana yaz (hata ayıklama için)
-    print("📦 Kullanıcı verileri:")
-    print("📅 Doğum Tarihi:", user_data.get("birth_date"))
-    print("⏰ Doğum Saati:", user_data.get("birth_time"))
-    print("🌐 Enlem:", latitude)
-    print("🌐 Boylam:", longitude)
-    print("🕒 Zaman Dilimi:", timezone)
-
-    # Eksik bilgi varsa "Bilinmiyor" değerleri ata
+    # Gizlilik: kişisel veri (tarih/koordinat) LOGLANMAZ; sadece hesap durumu.
+    # Eksik bilgi varsa boş harita kullan
     if not all([
         user_data.get("birth_date"),
         user_data.get("birth_time"),
@@ -110,7 +103,6 @@ def create_prompt(user_data: dict) -> str:
         longitude,
         timezone
     ]):
-        print("⚠️ Eksik bilgi nedeniyle doğum haritası hesaplanamadı.")
         astro_data = empty_chart()
     else:
         try:
@@ -121,9 +113,8 @@ def create_prompt(user_data: dict) -> str:
                 longitude,
                 timezone
             )
-            print("✅ Doğum haritası başarıyla hesaplandı.")
         except Exception as e:
-            print("❌ Doğum haritası hesaplama hatası:", e)
+            print("Dogum haritasi hesaplama hatasi:", e)
             astro_data = empty_chart()
 
     astro_block = format_astro(astro_data)
@@ -261,8 +252,24 @@ Bu tablo başlıkları şöyle olacak:
 - Tablonun altına da Özetle kısmı açıp moral ve motivasyon verici kısa bir konuşma yaz.
     """
 
-    # El falı bölümü (2. bölüm) artık ana prompt'un içinde ve "El Fotoğrafı Yüklendi mi"
-    # bilgisine göre model tarafından koşullu işleniyor; ayrı ek blok gerekmiyor.
+    # El falı bölümü (2. bölüm) ana prompt içinde, "El Fotoğrafı Yüklendi mi" bilgisine göre koşullu.
+
+    # 🟡 Favori ülke yoksa: seçilen ülke karşılaştırması yapma, haritaya göre öner.
+    has_countries = any(str(user_data.get(f"country{i}", "")).strip() for i in (1, 2, 3))
+    if not has_countries:
+        prompt += (
+            "\n\n⚠️ EK TALİMAT: Kullanıcı favori ülke/şehir belirtmedi. 3. bölümde 'senin seçtiğin ülkeler' "
+            "karşılaştırması YAPMA. Bunun yerine doğum haritası, hedefler, yaşadığı zorluklar ve genel "
+            "astrocartography potansiyeline göre 3-5 uygun ülke/şehir öner; bu bölümün başında 'Favori ülke/şehir "
+            "paylaşılmadığı için öneriler genel astrocartography potansiyeline göre hazırlanmıştır' notunu düş."
+        )
+
+    # 🛡️ Genel eksik bilgi kuralı: uydurma yok.
+    prompt += (
+        "\n\n⚠️ EKSİK BİLGİ KURALI: Paylaşılmamış bilgiler için TAHMİN YÜRÜTME, uydurma kişisel analiz yapma. "
+        "Sadece gelen veriye dayan. Bir bölüm için gerekli bilgi yoksa (örneğin el fotoğrafı yoksa 'yaşam çizgin uzun' "
+        "gibi iddialar yazma), o bölümü kısa ve sıcak bir eksik bilgi notuyla geç."
+    )
     return prompt
 
 
@@ -276,7 +283,7 @@ async def analyze_user(user_data: dict, client: AsyncAnthropic) -> Optional[str]
     if not prompt or not prompt.strip():
         return None
 
-    print("🧠 Oluşturulan prompt:", prompt[:300])
+    print(f"PROMPT_BUILT chars={len(prompt)}")  # gizlilik: prompt içeriği loglanmaz
 
     # 🖐️ El görseli varsa modele gerçekten "gösteriyoruz" (vision) — böylece
     # el falı yorumu uydurma değil, fotoğrafa dayalı olur.

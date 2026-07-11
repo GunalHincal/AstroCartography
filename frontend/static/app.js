@@ -99,6 +99,21 @@ function buildResult(resultDiv, analyzeData, today) {
         sections.push(s);
     }
 
+    // ℹ️ Eksik bilgi notu (yalnızca eksik varsa)
+    const mi = analyzeData.missing_inputs || [];
+    let missingBanner = "";
+    if (mi.length) {
+        const items = [];
+        if (mi.includes("hand_image")) items.push("El fotoğrafı yüklenmediği için el falı (palmistry) bölümü yapılamadı.");
+        if (mi.includes("preferred_countries")) items.push("Favori ülke/şehir belirtilmediği için ülke önerileri genel astrocartography potansiyelinize göre hazırlandı.");
+        missingBanner = `
+            <div class="missing-note">
+                <b>ℹ️ Eksik Bilgi Notu</b>
+                <p>Analiziniz mevcut bilgileriniz üzerinden hazırlanmıştır. Şunları eklerseniz daha kişisel bir analiz alabilirsiniz:</p>
+                <ul>${items.map(i => `<li>${i}</li>`).join("")}</ul>
+            </div>`;
+    }
+
     resultDiv.innerHTML = `
         <div class="report-header">
             <div class="report-brand">🪐 Astroline — Kişisel Analiz</div>
@@ -107,6 +122,7 @@ function buildResult(resultDiv, analyzeData, today) {
                 <button type="button" class="pdf-btn no-print" onclick="downloadPdf()">📄 PDF olarak indir</button>
             </div>
         </div>
+        ${missingBanner}
         <div id="analysis-pages"></div>
         <div class="page-nav no-print">
             <button type="button" id="an-prev">⬅️ Önceki</button>
@@ -382,11 +398,11 @@ form.addEventListener('submit', async (e) => {
       </div>`;
 
     try {
-        // 🎯 Cevapları backend'e ayrı ayrı kaydet
+        // 🎯 Cevapları backend'e ayrı ayrı kaydet — BOŞ opsiyonel alanları gönderme
         for (let [key, value] of formData.entries()) {
-            if (key !== 'hand_image' && key !== 'goals') {
-                await saveAnswer(key, value);
-            }
+            if (key === 'hand_image' || key === 'goals' || key === 'request_id') continue;
+            if (typeof value === 'string' && value.trim() === '') continue; // opsiyonel boş alan → atla
+            await saveAnswer(key, value);
         }
 
         // 🎯 Hedefler varsa onları da gönder

@@ -534,6 +534,22 @@ input:hover, select:hover { border-color: rgba(124, 108, 255, 0.5); }
 .privacy-note p:last-child { margin-bottom: 0; }
 .privacy-note b { color: #cdd2f5; }
 
+/* ℹ️ Eksik bilgi notu (analiz üstü banner) */
+.missing-note {
+    background: rgba(124, 108, 255, 0.10);
+    border: 1px solid rgba(124, 108, 255, 0.30);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    font-size: 14px;
+    color: #dfe2ff;
+    line-height: 1.6;
+}
+.missing-note b { color: var(--accent-2); }
+.missing-note p { margin: 6px 0; }
+.missing-note ul { margin: 6px 0 0; padding-left: 20px; }
+.missing-note li { margin: 3px 0; }
+
 /* 📖 Dergi görünümü: bölümler sayfa sayfa */
 .analysis-page { display: none; }
 .analysis-page.active { display: block; animation: fadeIn 0.35s ease; }

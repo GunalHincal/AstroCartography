@@ -205,20 +205,24 @@ async def home(request: Request):
 
 # 📅 Kullanıcıdan gelen her cevabı kaydet
 @app.post("/save_answer")
-async def save_answer(request: Request, key: str = Form(...), value: str = Form(...)):
+async def save_answer(request: Request, key: str = Form(...), value: str = Form("")):
     user_id = request.cookies.get("user_id")
     if not user_id:
         return JSONResponse(content={"error": "Kullanıcı ID bulunamadı."}, status_code=400)
 
-    is_new_user = user_id not in user_data
-    if is_new_user:
+    # 🟢 Opsiyonel alan boşsa (ör. country1/2/3, ilişki durumu): 422 VERME, kaydetme, işaretle.
+    if value is None or value.strip() == "":
+        logger.info("OPTIONAL_FIELD_SKIPPED user=%s key=%s reason=empty", user_id, key)
+        return {"status": "skipped", "key": key, "reason": "empty_optional_field"}
+
+    if user_id not in user_data:
         user_data[user_id] = {}
         asyncio.create_task(clear_user_data_later(user_id))  # ⏱️ 3 dk sonra silme başlat
-        print(f"📂 Yeni kullanıcı verisi oluşturuldu: {user_id}")
 
     user_data[user_id][key] = value
-    print(f"✅ [{user_id}] için kaydedilen veri: {key} = {value}")
-    return {"message": "Cevap kaydedildi."}
+    # Gizlilik: değeri LOGLAMA, sadece alan adını
+    logger.info("SAVE_ANSWER user=%s key=%s", user_id, key)
+    return {"message": "Cevap kaydedildi.", "status": "saved", "key": key}
 
 # 🔎 Kullanıcı verilerini oku
 async def get_user_answers(request: Request):
@@ -241,13 +245,23 @@ async def analyze(request: Request):
     hand_image = form_data.get("hand_image")
     has_hand = bool(hand_image and hasattr(hand_image, "filename") and hand_image.filename)
 
+    # 🟡 Eksik OPSİYONEL girdileri tespit et — analizi durdurmaz, sadece not düşer.
+    has_countries = any(str(user_data.get(f"country{i}", "")).strip() for i in (1, 2, 3))
+    missing_inputs = []
+    if not has_hand:
+        missing_inputs.append("hand_image")
+    if not has_countries:
+        missing_inputs.append("preferred_countries")
+    status = "completed" if not missing_inputs else "partial"
+
     # 🔎 Başlangıç logu — PRIVACY-SAFE: sadece meta veri, görsel İÇERİĞİ/base64 ASLA loglanmaz.
     logger.info(
-        "ANALYZE start | rid=%s user=%s hand=%s name=%s type=%s size=%s",
+        "ANALYZE start | rid=%s user=%s hand=%s name=%s type=%s size=%s countries=%s missing=%s",
         request_id, user_id, has_hand,
         getattr(hand_image, "filename", None) if has_hand else None,
         getattr(hand_image, "content_type", None) if has_hand else None,
         getattr(hand_image, "size", None) if has_hand else None,
+        has_countries, missing_inputs,
     )
 
     file_location = None
@@ -287,13 +301,15 @@ async def analyze(request: Request):
 
         analysis_text, html_table = extract_table_from_analysis(raw_analysis)
         elapsed = int((time.monotonic() - t0) * 1000)
-        logger.info("ANALYZE success | rid=%s status=success elapsed_ms=%d hand_used=%s",
-                    request_id, elapsed, bool(user_data.get("hand_image")))
+        logger.info("ANALYZE success | rid=%s status=%s elapsed_ms=%d hand_used=%s missing=%s",
+                    request_id, status, elapsed, bool(user_data.get("hand_image")), missing_inputs)
         return JSONResponse(content={
             "text": analysis_text,
             "table": html_table,
             "image_url": image_url,
             "request_id": request_id,
+            "status": status,
+            "missing_inputs": missing_inputs,
         })
 
     except Exception as exc:
